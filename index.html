@@ -174,7 +174,12 @@
         primaryField: 'account_login',
         additionalFields: [
           { name: 'user_id', label: 'User ID', type: 'text' },
-          { name: 'account_type', label: 'Account Type', type: 'text' }
+          { name: 'account_type', label: 'Account Type', type: 'text' },
+          { name: 'display_name', label: 'Display Name', type: 'text' },
+          { name: 'is_service_account', label: 'Is Service Account', type: 'checkbox' },
+          { name: 'is_privileged', label: 'Is Privileged', type: 'checkbox' },
+          { name: 'can_escalate_privs', label: 'Can Escalate Privileges', type: 'checkbox' },
+          { name: 'is_disabled', label: 'Is Disabled', type: 'checkbox' }
         ]
       },
       'windows-registry-key': {
@@ -454,7 +459,7 @@
                     }
                   } else if (['src_port', 'dst_port'].includes(key)) {
                     obj[key] = parseInt(val) || val;
-                  } else if (['is_multipart', 'is_active'].includes(key)) {
+                  } else if (['is_multipart', 'is_active', 'is_service_account', 'is_privileged', 'can_escalate_privs', 'is_disabled'].includes(key)) {
                     obj[key] = val === 'true' || val === true;
                   } else {
                     obj[key] = val;
@@ -653,7 +658,7 @@
                   <div
                     key={type}
                     className="bg-gray-200 px-3 py-1 rounded-full flex items-center cursor-pointer"
-                    onClick={() => editSco(indices[indices.length - 1])} // Edit the last SCO of this type
+                    onClick={() => editSco(indices[indices.length - 1])}
                   >
                     <span>
                       {type} ({count})
@@ -661,7 +666,7 @@
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        removeSco(indices[indices.length - 1]); // Remove the last SCO
+                        removeSco(indices[indices.length - 1]);
                       }}
                       className="ml-2 text-red-500 hover:text-red-700"
                     >
