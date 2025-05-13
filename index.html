@@ -1,0 +1,892 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STIX Bundle Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    // Error Boundary Component
+    class ErrorBoundary extends React.Component {
+      state = { error: null };
+      static getDerivedStateFromError(error) {
+        return { error };
+      }
+      componentDidCatch(error, errorInfo) {
+        console.error('Error caught in boundary:', error, errorInfo);
+      }
+      render() {
+        if (this.state.error) {
+          return <div className="text-red-500 p-4">Error: {this.state.error.message}</div>;
+        }
+        return this.props.children;
+      }
+    }
+
+    const scoTypes = [
+      'artifact',
+      'autonomous-system',
+      'directory',
+      'domain-name',
+      'email-addr',
+      'email-message',
+      'file',
+      'ipv4-addr',
+      'ipv6-addr',
+      'mac-addr',
+      'mutex',
+      'network-traffic',
+      'process',
+      'software',
+      'url',
+      'user-account',
+      'windows-registry-key',
+      'x509-certificate',
+      'crypto-currency-wallet',
+      'crypto-currency-transaction'
+    ];
+
+    const hashTypes = ['MD5', 'SHA-1', 'SHA-256', 'SHA-512'];
+
+    const scoConfig = {
+      'artifact': {
+        primaryField: 'payload_bin',
+        additionalFields: [
+          { name: 'mime_type', label: 'MIME Type', type: 'text', default: 'application/octet-stream' }
+        ]
+      },
+      'autonomous-system': {
+        primaryField: 'number',
+        additionalFields: [
+          { name: 'name', label: 'AS Name', type: 'text' },
+          { name: 'rir', label: 'RIR', type: 'text' }
+        ]
+      },
+      'directory': {
+        primaryField: 'path',
+        additionalFields: []
+      },
+      'domain-name': {
+        primaryField: 'value',
+        additionalFields: []
+      },
+      'email-addr': {
+        primaryField: 'value',
+        additionalFields: [
+          { name: 'display_name', label: 'Display Name', type: 'text' }
+        ]
+      },
+      'email-message': {
+        primaryField: 'subject',
+        additionalFields: [
+          { name: 'from_ref', label: 'From Email Address', type: 'text' },
+          { name: 'to_refs', label: 'To Email Addresses (comma-separated)', type: 'text' },
+          { name: 'is_multipart', label: 'Is Multipart', type: 'checkbox' },
+          { name: 'date', label: 'Date (ISO 8601)', type: 'text' }
+        ]
+      },
+      'file': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'hashes.MD5', label: 'MD5 Hash', type: 'text' },
+          { name: 'hashes.SHA-1', label: 'SHA-1 Hash', type: 'text' },
+          { name: 'hashes.SHA-256', label: 'SHA-256 Hash', type: 'text' }
+        ]
+      },
+      'ipv4-addr': {
+        primaryField: 'value',
+        additionalFields: []
+      },
+      'ipv6-addr': {
+        primaryField: 'value',
+        additionalFields: []
+      },
+      'mac-addr': {
+        primaryField: 'value',
+        additionalFields: []
+      },
+      'mutex': {
+        primaryField: 'name',
+        additionalFields: []
+      },
+      'network-traffic': {
+        primaryField: 'protocols',
+        additionalFields: [
+          { name: 'src_ref', label: 'Source IP (IPv4/IPv6)', type: 'text' },
+          { name: 'dst_ref', label: 'Destination IP (IPv4/IPv6)', type: 'text' },
+          { name: 'src_port', label: 'Source Port', type: 'number' },
+          { name: 'dst_port', label: 'Destination Port', type: 'number' },
+          { name: 'start', label: 'Start Time (ISO 8601)', type: 'text' },
+          { name: 'end', label: 'End Time (ISO 8601)', type: 'text' },
+          { name: 'is_active', label: 'Is Active', type: 'checkbox' }
+        ]
+      },
+      'process': {
+        primaryField: 'pid',
+        additionalFields: [
+          { name: 'name', label: 'Process Name', type: 'text' },
+          { name: 'command_line', label: 'Command Line', type: 'text' }
+        ]
+      },
+      'software': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'vendor', label: 'Vendor', type: 'text' },
+          { name: 'version', label: 'Version', type: 'text' },
+          { name: 'cpe', label: 'CPE', type: 'text' }
+        ]
+      },
+      'url': {
+        primaryField: 'value',
+        additionalFields: []
+      },
+      'user-account': {
+        primaryField: 'account_login',
+        additionalFields: [
+          { name: 'user_id', label: 'User ID', type: 'text' },
+          { name: 'account_type', label: 'Account Type', type: 'text' }
+        ]
+      },
+      'windows-registry-key': {
+        primaryField: 'key',
+        additionalFields: [
+          { name: 'values', label: 'Registry Values (JSON)', type: 'textarea' }
+        ]
+      },
+      'x509-certificate': {
+        primaryField: 'hashes',
+        additionalFields: []
+      },
+      'crypto-currency-wallet': {
+        primaryField: 'address',
+        additionalFields: [
+          { name: 'currency', label: 'Currency (e.g., BTC, ETH)', type: 'text' }
+        ]
+      },
+      'crypto-currency-transaction': {
+        primaryField: 'hash',
+        additionalFields: [
+          { name: 'from_wallet_ref', label: 'From Wallet Address', type: 'text' },
+          { name: 'to_wallet_ref', label: 'To Wallet Address', type: 'text' }
+        ]
+      }
+    };
+
+    const App = () => {
+      const [scoData, setScoData] = useState([]);
+      const [currentScoType, setCurrentScoType] = useState('');
+      const [currentValues, setCurrentValues] = useState('');
+      const [additionalFields, setAdditionalFields] = useState({});
+      const [currentHashes, setCurrentHashes] = useState([]);
+      const [currentHashValue, setCurrentHashValue] = useState('');
+      const [currentHashType, setCurrentHashType] = useState(hashTypes[0]);
+      const [stixBundle, setStixBundle] = useState(null);
+      const [importError, setImportError] = useState(null);
+      const [showModal, setShowModal] = useState(false);
+      const [importJson, setImportJson] = useState('');
+      const [editingIndex, setEditingIndex] = useState(null);
+      const [copied, setCopied] = useState(false);
+      const modalRef = useRef(null);
+      const textareaRef = useRef(null);
+
+      // Modal functions
+      const openModal = () => {
+        setShowModal(true);
+        setImportError(null);
+        setImportJson('');
+      };
+
+      const closeModal = () => {
+        setShowModal(false);
+        setImportError(null);
+        setImportJson('');
+      };
+
+      const handleBundleImport = () => {
+        if (!importJson.trim()) {
+          setImportError('Please paste a STIX bundle JSON.');
+          return;
+        }
+        try {
+          const bundle = JSON.parse(importJson);
+          if (bundle.type !== 'bundle' || !Array.isArray(bundle.objects)) {
+            throw new Error('Invalid STIX bundle: Must have type "bundle" and an "objects" array.');
+          }
+
+          // Build maps for email-addr and IP SCOs by id
+          const emailAddrMap = {};
+          const ipAddrMap = {};
+          bundle.objects.forEach(obj => {
+            if (obj.type === 'email-addr') {
+              emailAddrMap[obj.id] = obj.value;
+            } else if (['ipv4-addr', 'ipv6-addr'].includes(obj.type)) {
+              ipAddrMap[obj.id] = { value: obj.value, type: obj.type };
+            }
+          });
+
+          const newScos = [];
+          const seenValues = new Map(); // Track unique values to avoid duplicates
+
+          bundle.objects
+            .filter(obj => scoTypes.includes(obj.type))
+            .forEach(obj => {
+              const config = scoConfig[obj.type];
+              if (obj.type === 'x509-certificate') {
+                const hashes = Object.entries(obj.hashes || {}).map(([type, value]) => ({
+                  type,
+                  value
+                }));
+                newScos.push({
+                  type: obj.type,
+                  values: [hashes],
+                  additionalFields: {}
+                });
+              } else {
+                const primaryValue = obj[config.primaryField];
+                const additionalFields = {};
+                config.additionalFields.forEach(field => {
+                  if (field.name.includes('.')) {
+                    const [parent, child] = field.name.split('.');
+                    if (obj[parent] && obj[parent][child]) {
+                      additionalFields[field.name] = obj[parent][child];
+                    }
+                  } else if (obj[field.name] !== undefined) {
+                    if (field.name === 'from_ref' && obj.type === 'email-message') {
+                      additionalFields[field.name] = emailAddrMap[obj[field.name]] || obj[field.name];
+                    } else if (['src_ref', 'dst_ref'].includes(field.name) && obj.type === 'network-traffic') {
+                      additionalFields[field.name] = ipAddrMap[obj[field.name]]?.value || obj[field.name];
+                    } else {
+                      additionalFields[field.name] = Array.isArray(obj[field.name])
+                        ? obj[field.name].join(', ')
+                        : obj[field.name];
+                    }
+                  }
+                });
+
+                // Add SCO, ensuring no duplicates for email-addr, ipv4-addr, ipv6-addr
+                if (['email-addr', 'ipv4-addr', 'ipv6-addr'].includes(obj.type)) {
+                  const key = `${obj.type}:${primaryValue}`;
+                  if (!seenValues.has(key)) {
+                    newScos.push({
+                      type: obj.type,
+                      values: [primaryValue].filter(v => v),
+                      additionalFields
+                    });
+                    seenValues.set(key, true);
+                  }
+                } else {
+                  // For email-message and network-traffic, add referenced SCOs if not present
+                  if (obj.type === 'email-message' && obj.from_ref) {
+                    const refValue = emailAddrMap[obj.from_ref] || obj.from_ref;
+                    const key = `email-addr:${refValue}`;
+                    if (!seenValues.has(key)) {
+                      newScos.push({
+                        type: 'email-addr',
+                        values: [refValue],
+                        additionalFields: {}
+                      });
+                      seenValues.set(key, true);
+                    }
+                  }
+                  if (obj.type === 'network-traffic') {
+                    ['src_ref', 'dst_ref'].forEach(ref => {
+                      if (obj[ref]) {
+                        const refValue = ipAddrMap[obj[ref]]?.value || obj[ref];
+                        const refType = ipAddrMap[obj[ref]]?.type || (isIPv6(refValue) ? 'ipv6-addr' : 'ipv4-addr');
+                        const key = `${refType}:${refValue}`;
+                        if (!seenValues.has(key)) {
+                          newScos.push({
+                            type: refType,
+                            values: [refValue],
+                            additionalFields: {}
+                          });
+                          seenValues.set(key, true);
+                        }
+                      }
+                    });
+                  }
+                  newScos.push({
+                    type: obj.type,
+                    values: config.primaryField === 'protocols' ? primaryValue : [primaryValue].filter(v => v),
+                    additionalFields
+                  });
+                }
+              }
+            });
+
+          if (newScos.length === 0) {
+            setImportError('No valid SCOs found in the bundle.');
+          } else {
+            setScoData([...scoData, ...newScos]);
+            setImportError(null);
+            setShowModal(false);
+            setImportJson('');
+          }
+        } catch (err) {
+          setImportError(`Failed to import bundle: ${err.message}`);
+        }
+      };
+
+      const isIPv6 = (ip) => {
+        return ip.includes(':');
+      };
+
+      const handleAdditionalFieldChange = (name, value) => {
+        setAdditionalFields({
+          ...additionalFields,
+          [name]: typeof value === 'boolean' ? value : value.toString()
+        });
+      };
+
+      const addHash = () => {
+        if (!currentHashValue.trim() || !currentHashType) return;
+        setCurrentHashes([...currentHashes, { type: currentHashType, value: currentHashValue.trim() }]);
+        setCurrentHashValue('');
+        setCurrentHashType(hashTypes[0]);
+      };
+
+      const removeHash = (index) => {
+        setCurrentHashes(currentHashes.filter((_, i) => i !== index));
+      };
+
+      const editSco = (index) => {
+        const sco = scoData[index];
+        setEditingIndex(index);
+        setCurrentScoType(sco.type);
+        if (sco.type === 'x509-certificate') {
+          setCurrentHashes(sco.values[0]);
+        } else {
+          setCurrentValues(sco.values.join('\n'));
+        }
+        setAdditionalFields({ ...sco.additionalFields });
+      };
+
+      const cancelEdit = () => {
+        setEditingIndex(null);
+        setCurrentScoType('');
+        setCurrentValues('');
+        setCurrentHashes([]);
+        setAdditionalFields({});
+      };
+
+      const saveSco = () => {
+        if (!currentScoType) return;
+
+        let newSco;
+        if (currentScoType === 'x509-certificate') {
+          if (currentHashes.length === 0) return;
+          newSco = {
+            type: currentScoType,
+            values: [currentHashes],
+            additionalFields: {}
+          };
+        } else {
+          if (!currentValues.trim()) return;
+          const values = currentValues.split('\n').map(v => v.trim()).filter(v => v);
+          newSco = {
+            type: currentScoType,
+            values,
+            additionalFields: { ...additionalFields }
+          };
+        }
+
+        if (editingIndex !== null) {
+          const newScoData = [...scoData];
+          newScoData[editingIndex] = newSco;
+          setScoData(newScoData);
+          setEditingIndex(null);
+        } else {
+          setScoData([...scoData, newSco]);
+        }
+
+        setCurrentScoType('');
+        setCurrentValues('');
+        setCurrentHashes([]);
+        setAdditionalFields({});
+      };
+
+      const removeSco = (index) => {
+        setScoData(scoData.filter((_, i) => i !== index));
+        setStixBundle(null);
+      };
+
+      const clearAllScos = () => {
+        setScoData([]);
+        setStixBundle(null);
+      };
+
+      const copyToClipboard = () => {
+        if (!stixBundle) return;
+        navigator.clipboard.writeText(JSON.stringify(stixBundle, null, 2)).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      };
+
+      const generateBundle = () => {
+        const bundle = {
+          type: 'bundle',
+          id: `bundle--${crypto.randomUUID()}`,
+          objects: []
+        };
+
+        // Collect email-addr and IP SCOs, mapping values to new IDs
+        const emailAddrMap = {};
+        const ipAddrMap = {};
+        scoData.forEach(sco => {
+          if (sco.type === 'email-addr') {
+            const newId = `email-addr--${crypto.randomUUID()}`;
+            emailAddrMap[sco.values[0]] = newId;
+            bundle.objects.push({
+              type: sco.type,
+              id: newId,
+              spec_version: '2.1',
+              created: new Date().toISOString(),
+              value: sco.values[0],
+              display_name: sco.additionalFields.display_name
+            });
+          } else if (['ipv4-addr', 'ipv6-addr'].includes(sco.type)) {
+            const newId = `${sco.type}--${crypto.randomUUID()}`;
+            ipAddrMap[sco.values[0]] = { id: newId, type: sco.type };
+            bundle.objects.push({
+              type: sco.type,
+              id: newId,
+              spec_version: '2.1',
+              created: new Date().toISOString(),
+              value: sco.values[0]
+            });
+          }
+        });
+
+        scoData.forEach(sco => {
+          if (sco.type === 'x509-certificate') {
+            const obj = {
+              type: sco.type,
+              id: `${sco.type}--${crypto.randomUUID()}`,
+              spec_version: '2.1',
+              created: new Date().toISOString(),
+              hashes: sco.values[0].reduce((acc, hash) => ({
+                ...acc,
+                [hash.type]: hash.value
+              }), {})
+            };
+            bundle.objects.push(obj);
+          } else {
+            sco.values.forEach(value => {
+              const obj = {
+                type: sco.type,
+                id: `${sco.type}--${crypto.randomUUID()}`,
+                spec_version: '2.1',
+                created: new Date().toISOString()
+              };
+
+              const config = scoConfig[sco.type];
+              if (config.primaryField === 'protocols') {
+                obj[config.primaryField] = sco.values;
+              } else if (config.primaryField === 'pid') {
+                obj[config.primaryField] = parseInt(value) || value;
+              } else {
+                obj[config.primaryField] = value;
+              }
+
+              Object.entries(sco.additionalFields).forEach(([key, val]) => {
+                if (val) {
+                  if (key.includes('.')) {
+                    const [parent, child] = key.split('.');
+                    obj[parent] = { ...obj[parent], [child]: val };
+                  } else if (key === 'to_refs') {
+                    obj[key] = val.split(',').map(v => v.trim()).filter(v => v);
+                  } else if (key === 'values' && sco.type === 'windows-registry-key') {
+                    try {
+                      obj[key] = JSON.parse(val);
+                    } catch {
+                      obj[key] = val;
+                    }
+                  } else if (['src_port', 'dst_port'].includes(key)) {
+                    obj[key] = parseInt(val) || val;
+                  } else if (['is_multipart', 'is_active'].includes(key)) {
+                    obj[key] = val === 'true' || val === true;
+                  } else if (key === 'from_ref' && sco.type === 'email-message') {
+                    if (emailAddrMap[val]) {
+                      obj[key] = emailAddrMap[val];
+                    } else {
+                      const newId = `email-addr--${crypto.randomUUID()}`;
+                      bundle.objects.push({
+                        type: 'email-addr',
+                        id: newId,
+                        spec_version: '2.1',
+                        created: new Date().toISOString(),
+                        value: val
+                      });
+                      obj[key] = newId;
+                    }
+                  } else if (['src_ref', 'dst_ref'].includes(key) && sco.type === 'network-traffic') {
+                    if (ipAddrMap[val]) {
+                      obj[key] = ipAddrMap[val].id;
+                    } else {
+                      const ipType = isIPv6(val) ? 'ipv6-addr' : 'ipv4-addr';
+                      const newId = `${ipType}--${crypto.randomUUID()}`;
+                      bundle.objects.push({
+                        type: ipType,
+                        id: newId,
+                        spec_version: '2.1',
+                        created: new Date().toISOString(),
+                        value: val
+                      });
+                      obj[key] = newId;
+                    }
+                  } else {
+                    obj[key] = val;
+                  }
+                }
+              });
+
+              bundle.objects.push(obj);
+            });
+          }
+        });
+
+        setStixBundle(bundle);
+      };
+
+      const downloadBundle = () => {
+        if (!stixBundle) return;
+        const blob = new Blob([JSON.stringify(stixBundle, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'stix_bundle.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      return (
+        <ErrorBoundary>
+          <div className="container mx-auto p-4 max-w-4xl">
+            <h1 className="text-2xl font-bold mb-4">STIX Bundle Generator</h1>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1" htmlFor="sco-type">Select SCO Type</label>
+              <select
+                id="sco-type"
+                value={currentScoType}
+                onChange={(e) => {
+                  setCurrentScoType(e.target.value);
+                  setAdditionalFields({});
+                  setCurrentHashes([]);
+                  setCurrentValues('');
+                  setEditingIndex(null);
+                }}
+                className="w-full p-2 border rounded"
+                aria-label="Select SCO Type"
+              >
+                <option value="" disabled selected hidden>Select SCO Type</option>
+                {scoTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            {currentScoType && currentScoType !== 'x509-certificate' && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">
+                  Enter {scoConfig[currentScoType].primaryField} (one per line)
+                </label>
+                <textarea
+                  value={currentValues}
+                  onChange={(e) => setCurrentValues(e.target.value)}
+                  className="w-full p-2 border rounded h-32"
+                  placeholder={`Enter ${scoConfig[currentScoType].primaryField}, one per line`}
+                />
+              </div>
+            )}
+
+            {currentScoType === 'x509-certificate' && (
+              <div className="mb-4">
+                <h3 className="text-sm font-medium mb-2">Add Hashes</h3>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={currentHashValue}
+                    onChange={(e) => setCurrentHashValue(e.target.value)}
+                    className="w-2/3 p-2 border rounded"
+                    placeholder="Enter hash"
+                  />
+                  <select
+                    value={currentHashType}
+                    onChange={(e) => setCurrentHashType(e.target.value)}
+                    className="w-1/3 p-2 border rounded"
+                  >
+                    {hashTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={() => addHash()}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                  disabled={!currentHashValue.trim()}
+                >
+                  Add Hash
+                </button>
+                {currentHashes.length > 0 && (
+                  <div className="mt-2">
+                    <h4 className="text-sm font-medium">Added Hashes</h4>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {currentHashes.map((hash, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-200 px-3 py-1 rounded-full flex items-center"
+                        >
+                          <span>{hash.type}: {hash.value.substring(0, 8)}...</span>
+                          <button
+                            onClick={() => removeHash(index)}
+                            className="ml-2 text-red-500 hover:text-red-700"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {currentScoType && scoConfig[currentScoType].additionalFields.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-sm font-medium mb-2">Additional Fields</h3>
+                {scoConfig[currentScoType].additionalFields.map(field => (
+                  <div key={field.name} className="mb-2">
+                    <label className="block text-sm font-medium mb-1">{field.label}</label>
+                    {field.type === 'textarea' ? (
+                      <textarea
+                        value={additionalFields[field.name] || ''}
+                        onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
+                        className="w-full p-2 border rounded h-24"
+                        placeholder={`Enter ${field.label}`}
+                      />
+                    ) : field.type === 'checkbox' ? (
+                      <input
+                        type="checkbox"
+                        checked={additionalFields[field.name] === true || additionalFields[field.name] === 'true'}
+                        onChange={(e) => handleAdditionalFieldChange(field.name, e.target.checked)}
+                        className="p-2 border rounded"
+                      />
+                    ) : (
+                      <input
+                        type={field.type}
+                        value={additionalFields[field.name] || ''}
+                        onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
+                        className="w-full p-2 border rounded"
+                        placeholder={`Enter ${field.label}`}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => saveSco()}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                disabled={
+                  !currentScoType ||
+                  (currentScoType === 'x509-certificate' ? currentHashes.length === 0 : !currentValues.trim())
+                }
+              >
+                {editingIndex !== null ? 'Update SCO' : 'Add SCO'}
+              </button>
+              {editingIndex !== null && (
+                <button
+                  onClick={() => cancelEdit()}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+
+            {scoData.length > 0 && (
+              <div className="mt-4">
+                <h2 className="text-lg font-semibold">Added SCOs</h2>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {scoData.map((sco, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-200 px-3 py-1 rounded-full flex items-center cursor-pointer"
+                      onClick={() => editSco(index)}
+                    >
+                      <span>
+                        {sco.type} (
+                        {sco.type === 'x509-certificate' ? sco.values[0].length : sco.values.length})
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeSco(index);
+                        }}
+                        className="ml-2 text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {scoData.length > 0 && (
+              <button
+                onClick={() => generateBundle()}
+                className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                Generate STIX Bundle
+              </button>
+            )}
+
+            {stixBundle && (
+              <div className="mt-4">
+                <h2 className="text-lg font-semibold">STIX Bundle</h2>
+                <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-96">
+                  {JSON.stringify(stixBundle, null, 2)}
+                </pre>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => downloadBundle()}
+                    className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                    aria-label="Download STIX bundle as JSON"
+                  >
+                    Download JSON
+                  </button>
+                  <button
+                    onClick={() => copyToClipboard()}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    aria-label={copied ? "JSON copied to clipboard" : "Copy STIX bundle JSON to clipboard"}
+                  >
+                    {copied ? 'Copied!' : 'Copy to Clipboard'}
+                  </button>
+                  {scoData.length > 0 && (
+                    <button
+                      onClick={() => clearAllScos()}
+                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                      aria-label="Clear all SCOs"
+                    >
+                      Clear All SCOs
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {importError && (
+              <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
+                {importError}
+              </div>
+            )}
+
+            <button
+              onClick={() => openModal()}
+              className="mt-4 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+              aria-label="Import STIX bundle"
+            >
+              Import STIX Bundle
+            </button>
+
+            {showModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div
+                  ref={modalRef}
+                  className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"
+                  role="dialog"
+                  aria-labelledby="modal-title"
+                >
+                  <h2 id="modal-title" className="text-lg font-semibold mb-4">Import STIX Bundle</h2>
+                  <textarea
+                    ref={textareaRef}
+                    value={importJson}
+                    onChange={(e) => setImportJson(e.target.value)}
+                    className="w-full p-2 border rounded h-48 mb-4"
+                    placeholder="Paste STIX bundle JSON here"
+                    aria-label="STIX bundle JSON"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleBundleImport()}
+                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      aria-label="Submit STIX bundle"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      onClick={() => closeModal()}
+                      className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                      aria-label="Cancel import"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <footer className="mt-8 py-4 bg-gray-100 text-center text-sm text-gray-600" role="contentinfo">
+              Created by Grok, narrated by gbyx3
+            </footer>
+          </div>
+        </ErrorBoundary>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
