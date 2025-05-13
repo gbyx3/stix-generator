@@ -2,9 +2,15 @@
 
 All notable changes to the STIX Bundle Generator project are documented in this file.
 
+## [267b2709-b148-4ffd-a2ba-f08dc5892549] - 2025-05-13 [stable]
+- **Added**: New fields to `user-account` SCO type: `display_name` (text input), `is_service_account` (checkbox), `is_privileged` (checkbox), `can_escalate_privs` (checkbox), `is_disabled` (checkbox), alongside existing `user_id` and `account_type`.
+- **Changed**: Updated `generateBundle` to handle new `user-account` checkbox fields as booleans.
+- **Preserved**: Aggregated SCO chip counts, single-line inputs for primary fields and `windows-registry-key` `values`, single-value submission, and all existing features (20 SCO types, clickable chips, modal import, buttons, `x509-certificate` hash system, `network-traffic` `protocols` flat array, footer, placeholder).
+- **Note**: Marked as stable following validation of new `user-account` fields and overall functionality.
+
 ## [ebba5370-9bc3-48d0-b86f-4980f40a4ba8] - 2025-05-13
 - **Fixed**: Updated "Added SCOs" section to aggregate SCOs by type, displaying one chip per type with the total count (e.g., `user-account (2)` for two `user-account` SCOs). Clicking a chip edits the last SCO of the type; the remove button deletes the last SCO.
-- **Preserved**: Single-line `input` for primary fields and `windows-registry-key` `values`, single-value submission, and all existing features (20 SCO types, clickable chips, modal import, buttons, `x509-certificate` hash system, `network-traffic` `protocols` flat array, footer, placeholder).
+- **Preserved**: Single-line `input` for primary fields and `windows-registry-key` `values`, single-value submission, and all existing features.
 
 ## [772b9c0f-8afd-496f-8d88-301cb5c514e6] - 2025-05-13
 - **Changed**: Replaced `textarea` with single-line `input` for primary fields of all non-`x509-certificate` SCOs and for `windows-registry-key` `values` field (previously `textarea`). Restricted submissions to one value at a time by processing `currentValues` as a single value in `saveSco`.
@@ -17,7 +23,7 @@ All notable changes to the STIX Bundle Generator project are documented in this 
 ## [cc452bb9-5cb3-4707-a446-8106fa23aa81] - 2025-05-13
 - **Fixed**: Eliminated duplicate `email-addr`, `ipv4-addr`, and `ipv6-addr` SCOs in `handleBundleImport` by consolidating SCO addition with a `seenValues` `Map`, ensuring one SCO per unique `value`. Integrated reference processing (`from_ref`, `src_ref`, `dst_ref`) within the main SCO loop.
 - **Preserved**: Single-line `input` changes, single-value submission, `ErrorBoundary`, standardized `onClick` handlers, and all existing features.
-- **Note**: Introduced issues (unspecified breakage), leading to reversion request.
+- **Issue**: Introduced unspecified breakage, leading to reversion to `9c4dc825-1f6b-4b68-a9d3-4405ee391a39`.
 
 ## [cf6a0e46-ea55-4d6d-867a-96be922c4cfa] - 2025-05-13
 - **Fixed**: Attempted to fix duplicate `email-addr`, `ipv4-addr`, and `ipv6-addr` SCOs using a `seenValues` `Map` to track unique `value`s. Added checks for `from_ref`, `src_ref`, and `dst_ref` references.
@@ -75,4 +81,4 @@ All notable changes to the STIX Bundle Generator project are documented in this 
 
 ---
 
-**Note**: Dates are standardized to May 13, 2025, based on the project timeline. Each version preserves features from prior versions unless explicitly modified. Limitations in earlier versions (e.g., duplicate SCOs, unresolved `from_ref`/`src_ref`/`dst_ref`, runtime errors) were addressed in later versions but may persist in reverted states.
+**Note**: Dates are standardized to May 13, 2025, based on the project timeline. Each version preserves features from prior versions unless explicitly modified. The `[stable]` tag indicates a validated, reliable version. Limitations in earlier versions (e.g., duplicate SCOs, unresolved `from_ref`/`src_ref`/`dst_ref`, runtime errors) were addressed in later versions but may persist in reverted states.
