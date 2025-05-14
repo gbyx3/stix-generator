@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -224,6 +185,8 @@
       const modalRef = useRef(null);
       const textareaRef = useRef(null);
 
+      const multiLineScoTypes = ['ipv4-addr', 'ipv6-addr', 'domain-name', 'mac-addr', 'mutex', 'url'];
+
       const handleAdditionalFieldChange = (name, value) => {
         setAdditionalFields({
           ...additionalFields,
@@ -275,7 +238,9 @@
           };
         } else {
           if (!currentValues.trim()) return;
-          const values = [currentValues.trim()].filter(v => v);
+          const values = multiLineScoTypes.includes(currentScoType)
+            ? currentValues.split('\n').map(v => v.trim()).filter(v => v)
+            : [currentValues.trim()].filter(v => v);
           newSco = {
             type: currentScoType,
             values,
@@ -493,7 +458,13 @@
           if (!counts[sco.type]) {
             counts[sco.type] = { count: 0, indices: [] };
           }
-          counts[sco.type].count += 1;
+          if (sco.type === 'x509-certificate') {
+            counts[sco.type].count += sco.values[0].length;
+          } else if (['ipv4-addr', 'ipv6-addr', 'domain-name', 'mac-addr', 'mutex', 'url'].includes(sco.type)) {
+            counts[sco.type].count += sco.values.length;
+          } else {
+            counts[sco.type].count += 1;
+          }
           counts[sco.type].indices.push(index);
         });
         return counts;
@@ -532,13 +503,22 @@
               <label className="block text-sm font-medium mb-1">
                 Enter {scoConfig[currentScoType].primaryField}
               </label>
-              <input
-                type={currentScoType === 'process' ? 'number' : 'text'}
-                value={currentValues}
-                onChange={(e) => setCurrentValues(e.target.value)}
-                className="w-full p-2 border rounded"
-                placeholder={`Enter ${scoConfig[currentScoType].primaryField}`}
-              />
+              {multiLineScoTypes.includes(currentScoType) ? (
+                <textarea
+                  value={currentValues}
+                  onChange={(e) => setCurrentValues(e.target.value)}
+                  className="w-full p-2 border rounded h-32"
+                  placeholder={`Enter ${scoConfig[currentScoType].primaryField}, one per line`}
+                />
+              ) : (
+                <input
+                  type={currentScoType === 'process' ? 'number' : 'text'}
+                  value={currentValues}
+                  onChange={(e) => setCurrentValues(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder={`Enter ${scoConfig[currentScoType].primaryField}`}
+                />
+              )}
             </div>
           )}
 
@@ -696,7 +676,7 @@
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={downloadBundle}
-                  className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                  className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                   aria-label="Download STIX bundle as JSON"
                 >
                   Download JSON
