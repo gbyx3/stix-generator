@@ -477,6 +477,17 @@
         setRelationshipBundle(null);
       };
 
+      const removeObject = (index) => {
+        const objectToRemove = createdObjects[index];
+        setCreatedObjects(createdObjects.filter((_, i) => i !== index));
+        setRelationships(
+          relationships.filter(
+            rel => rel.source_ref !== objectToRemove.id && rel.target_ref !== objectToRemove.id
+          )
+        );
+        setRelationshipBundle(null);
+      };
+
       const removeSco = (index) => {
         setScoData(scoData.filter((_, i) => i !== index));
         setStixBundle(null);
@@ -1356,20 +1367,23 @@
                 )}
               </div>
 
-              {/* Created Objects Dropdown */}
+              {/* Created Objects List */}
               {createdObjects.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-sm font-medium mb-2">Created Objects</h3>
-                  <select
-                    className="w-full p-2 border rounded"
-                    aria-label="Select Created Object"
-                    defaultValue=""
-                  >
-                    <option value="" disabled>Select Created Object</option>
+                  <ul className="list-disc pl-5">
                     {createdObjects.map((obj, index) => (
-                      <option key={index} value={index}>{`${obj.name} (${obj.type})`}</option>
+                      <li key={index} className="text-sm flex items-center">
+                        <span>{`${obj.name} (${obj.type})`}</span>
+                        <button
+                          onClick={() => removeObject(index)}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          ×
+                        </button>
+                      </li>
                     ))}
-                  </select>
+                  </ul>
                 </div>
               )}
 
