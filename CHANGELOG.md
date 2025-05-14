@@ -1,99 +1,128 @@
-# CHANGELOG
+# STIX Bundle Generator Changelog
 
-All notable changes to the STIX Bundle Generator project are documented in this file.
+This changelog documents the evolution of the STIX Bundle Generator (`artifact_id="f8b52830-61e7-4dcd-b9f3-809e7d8ff123"`), detailing key changes, features, and fixes across all versions.
 
-## [aad2d30f-0f63-4a7b-a4c1-b8dcf26ca129] - 2025-05-14 [stable]
-- **Fixed**: Resolved `SyntaxError: Unexpected token, expected "}"` in `x509-certificate` dropdown by correcting JSX syntax in `hashTypes.map`, removing erroneous `) => (` and duplicate `<option` tag.
-- **Preserved**: Multiline `textarea` for `ipv4-addr`, `ipv6-addr`, `domain-name`, `mac-addr`, `mutex`, `url` with accurate value counts in "Added SCOs", single-line `input` for other SCOs, aggregated chip counts, `user-account` fields, and all existing features.
-- **Note**: Marked as stable following validation of runtime error fix and overall functionality.
+## Version 4f9cd0c4-4a7d-483f-add3-0d00081c442f
+*Date: May 14, 2025 (approx. 6:00 PM CEST)*
 
-## [50e216c4-2cab-48a0-a63d-9648cdea2905] - 2025-05-14
-- **Fixed**: Updated "Added SCOs" chip count for `ipv4-addr`, `ipv6-addr`, `domain-name`, `mac-addr`, `mutex`, `url` to reflect the total number of values in their `values` arrays (e.g., `ipv4-addr (2)` for two IPs). Maintained SCO object counts for other types and hash counts for `x509-certificate`.
-- **Preserved**: Multiline `textarea` for specified SCOs, single-line `input` for others, and all existing features.
-- **Issue**: Introduced `SyntaxError` in `x509-certificate` dropdown due to JSX typo.
+- **Initial Release**:
+  - Introduced two tabs: SCO Builder and Relationship Builder.
+  - **SCO Builder**:
+    - Supports 20 SCO types (e.g., `ipv4-addr`, `x509-certificate`, `user-account`).
+    - Multiline `textarea` for types like `ipv4-addr`, single-line `input` for others.
+    - Features aggregated SCO counts, modal import, buttons (Generate, Download, Copy, Clear).
+    - Includes `x509-certificate` hash system, `network-traffic` `protocols`, and fields like `rir`.
+  - **Relationship Builder**:
+    - Object creation form with single-line `input` fields.
+    - Unique `Object Name` checks (case-insensitive).
+    - Supports object/relationship creation/removal, bundle generation, and import modal.
+    - Placeholders include “(comma-separated)” for some fields.
+  - Added footer: “Created by Grok, narrated by gbyx3”.
+- **Limitations**:
+  - Separate bundles for SCO Builder and Relationship Builder.
+  - Unresolved reference IDs in relationships.
+  - Potential runtime errors in `openModal`, `downloadBundle`.
 
-## [57ef974f-d16b-4940-b151-2f5ae63854b3] - 2025-05-14
-- **Changed**: Replaced single-line `input` with multiline `textarea` for primary fields of `ipv4-addr`, `ipv6-addr`, `domain-name`, `mac-addr`, `mutex`, `url`. Enabled multiline submission (one value per line) for these SCOs.
-- **Preserved**: Single-line `input` for other SCOs, aggregated chip counts, `user-account` fields, and all existing features.
-- **Issue**: "Added SCOs" chip count did not reflect the number of values for multiline SCOs (e.g., showed `ipv4-addr (1)` for two IPs).
+## Version bb3cfebf-67f2-4465-b9a4-670ecdbeeb6b
+*Date: May 14, 2025 (approx. 8:35 PM CEST)*
 
-## [267b2709-b148-4ffd-a2ba-f08dc5892549] - 2025-05-13 [stable]
-- **Added**: New fields to `user-account` SCO type: `display_name` (text input), `is_service_account` (checkbox), `is_privileged` (checkbox), `can_escalate_privs` (checkbox), `is_disabled` (checkbox), alongside existing `user_id` and `account_type`.
-- **Changed**: Updated `generateBundle` to handle new `user-account` checkbox fields as booleans.
-- **Preserved**: Aggregated SCO chip counts, single-line inputs for primary fields and `windows-registry-key` `values`, single-value submission, and all existing features.
-- **Note**: Marked as stable following validation of new `user-account` fields and overall functionality.
+- **Renamed Relationship Builder**:
+  - Changed “Relationship Builder” tab to “Builder” in UI (label and heading).
+  - Set Builder as the default tab (`activeTab` initialized to `'relationship'`).
+- **Preserved SCO Builder**:
+  - Kept SCO Builder as a secondary tab with no changes.
+- **Features Retained**:
+  - All SCO Builder and Builder functionality from previous version.
+  - Maintained single-line `input` fields in Builder, unique name checks, and bundle generation.
+- **Limitations**:
+  - Same as previous version.
 
-## [ebba5370-9bc3-48d0-b86f-4980f40a4ba8] - 2025-05-13
-- **Fixed**: Updated "Added SCOs" section to aggregate SCOs by type, displaying one chip per type with the total count (e.g., `user-account (2)` for two `user-account` SCOs). Clicking a chip edits the last SCO of the type; the remove button deletes the last SCO.
-- **Preserved**: Single-line `input` for primary fields and `windows-registry-key` `values`, single-value submission, and all existing features.
+## Version 38d9d06b-3087-492d-887f-b8e14c7aca1f
+*Date: May 14, 2025 (approx. 8:40 PM CEST)*
 
-## [772b9c0f-8afd-496f-8d88-301cb5c514e6] - 2025-05-13
-- **Changed**: Replaced `textarea` with single-line `input` for primary fields of all non-`x509-certificate` SCOs and for `windows-registry-key` `values` field (previously `textarea`). Restricted submissions to one value at a time by processing `currentValues` as a single value in `saveSco`.
-- **Preserved**: Modal import button labeled "Import", all existing features, and limitations (duplicate SCOs, IDs for `from_ref`/`src_ref`/`dst_ref`, potential runtime errors).
+- **Reordered Tabs**:
+  - Moved Builder tab to the left of SCO Builder in UI for better prominence.
+- **Fixed Footer Typo**:
+  - Corrected footer from “Created plastered by Grok” to “Created by Grok, narrated by gbyx3”.
+- **Features Retained**:
+  - Preserved Builder as default tab and all functionality from previous version.
+- **Limitations**:
+  - Same as previous version.
 
-## [b6cd1f48-f490-447e-8168-28ed3e504707] - 2025-05-13
-- **Changed**: Updated "Import STIX Bundle" button text to "Import" and its `aria-label` to "Import" for accessibility.
-- **Preserved**: Reverted functionality from `9c4dc825-1f6b-4b68-a9d3-4405ee391a39`, including 20 SCO types, clickable chips, modal import, "Generate STIX Bundle", "Download JSON", "Copy to Clipboard", "Clear All SCOs", `x509-certificate` hash system, `network-traffic` `protocols` flat array, footer, and "Select SCO Type" placeholder.
+## Version 7bd889ad-929c-4416-9fff-98cbb5f09677
+*Date: May 14, 2025 (approx. 8:48 PM CEST)*
 
-## [cc452bb9-5cb3-4707-a446-8106fa23aa81] - 2025-05-13
-- **Fixed**: Eliminated duplicate `email-addr`, `ipv4-addr`, and `ipv6-addr` SCOs in `handleBundleImport` by consolidating SCO addition with a `seenValues` `Map`, ensuring one SCO per unique `value`. Integrated reference processing (`from_ref`, `src_ref`, `dst_ref`) within the main SCO loop.
-- **Preserved**: Single-line `input` changes, single-value submission, `ErrorBoundary`, standardized `onClick` handlers, and all existing features.
-- **Issue**: Introduced unspecified breakage, leading to reversion to `9c4dc825-1f6b-4b68-a9d3-4405ee391a39`.
+- **Renamed Object Name**:
+  - Changed “Object Name” to “Friendly Name” in Builder’s object creation form (label, placeholder, error message).
+  - Updated placeholder to “Enter a friendly name for this object”.
+  - Modified error message to “Object with this friendly name already exists.”.
+- **Preserved Logic**:
+  - Kept `objectName` state and unique name check logic unchanged.
+- **Features Retained**:
+  - All functionality from previous version, including tab order (Builder left, SCO Builder right).
+- **Limitations**:
+  - Same as previous version.
 
-## [cf6a0e46-ea55-4d6d-867a-96be922c4cfa] - 2025-05-13
-- **Fixed**: Attempted to fix duplicate `email-addr`, `ipv4-addr`, and `ipv6-addr` SCOs using a `seenValues` `Map` to track unique `value`s. Added checks for `from_ref`, `src_ref`, and `dst_ref` references.
-- **Issue**: Duplicates persisted due to separate reference processing adding SCOs already present.
-- **Preserved**: `ErrorBoundary`, standardized `onClick` handlers, single-line `input` for primary fields, and all existing features.
+## Version db2f2b01-7c61-4c70-9966-6701f94abcf3
+*Date: May 14, 2025 (approx. 9:00 PM CEST)*
 
-## [ffb7bdd2-7ace-480d-9bb1-a2188cbcd222] - 2025-05-13
-- **Fixed**: Resolved `downloadBundle is not defined` error by changing `onClick={downloadBundle}` to `onClick={() => downloadBundle()}`.
-- **Changed**: Standardized all button `onClick` handlers to use arrow functions (e.g., `onClick={() => functionName()}`) for consistency and to prevent binding issues.
-- **Preserved**: `network-traffic` `src_ref`/`dst_ref`, `email-message` `from_ref`, `ErrorBoundary`, and all existing features.
+- **Updated SDO Schema**:
+  - Replaced `sdoConfig` with a new schema supporting 18 SDO types (`attack-pattern`, `campaign`, `course-of-action`, `grouping`, `identity`, `indicator`, `infrastructure`, `intrusion-set`, `location`, `malware`, `malware-analysis`, `note`, `observed-data`, `opinion`, `report`, `threat-actor`, `tool`, `vulnerability`).
+  - Added fields like `aliases`, `kill_chain_phases`, `first_seen`, `latitude`, etc., with appropriate input types (e.g., `text`, `datetime-local`, `number`, `select`).
+  - Omitted `external_references` and `object_marking_refs` from form inputs due to external context requirements.
+- **Enhanced Form**:
+  - Updated Builder’s object creation form to dynamically render new SDO fields.
+  - Handled array inputs (e.g., `aliases`) as comma-separated strings and JSON inputs (e.g., `kill_chain_phases`).
+- **Updated Bundle Generation**:
+  - Modified `generateRelationshipBundle` to include new SDO fields, parsing arrays and JSON correctly.
+- **Features Retained**:
+  - Preserved SCO Builder and existing Builder functionality, including `Friendly Name` and tab order.
+- **Limitations**:
+  - Same as previous version, with potential for invalid `source_ref`/`target_ref` in relationships.
 
-## [149acdb2-c760-4b0d-abb5-c7f0dfac92ce] - 2025-05-13
-- **Fixed**: Corrected `network-traffic` `src_ref`/`dst_ref` to display IP addresses in UI and ensure `ipv4-addr`/`ipv6-addr` SCOs appear as chips in "Added SCOs".
-- **Fixed**: Resolved `openModal is not defined` error by changing `onClick={openModal}` to `onClick={() => openModal()}` and added `ErrorBoundary` for runtime error logging.
-- **Preserved**: `email-message` `from_ref`, `network-traffic` `protocols` flat array, and all existing features.
+## Version 03946ddc-85f3-4a45-9a87-892cba799071
+*Date: May 14, 2025 (approx. 9:15 PM CEST)*
 
-## [464239f7-4610-4205-8be5-0902c1ea5ed4] - 2025-05-13
-- **Fixed**: Attempted to fix `network-traffic` `src_ref`/`dst_ref` to display IP addresses in UI and add `ipv4-addr`/`ipv6-addr` SCOs as chips.
-- **Issue**: IDs appeared in UI instead of IPs, and IP SCOs were inconsistent.
-- **Preserved**: `email-message` `from_ref` and existing features.
+- **Fixed Relationship References**:
+  - Corrected `source_ref` and `target_ref` in relationships to use existing object IDs from `createdObjects` instead of generating new IDs.
+  - Updated `saveRelationshipObject` to create separate objects for each value of multi-value SCOs (e.g., `ipv4-addr` with `192.0.2.1,192.0.2.2` creates multiple objects with unique IDs).
+  - Modified `generateRelationshipBundle` to use stored `id` fields, ensuring relationships reference correct objects.
+- **Features Retained**:
+  - All functionality from previous version, including updated SDO schema and UI features.
+- **Limitations**:
+  - Same as previous version, with a noted syntax error introduced in `generateRelationshipBundle`.
 
-## [81903165-62e7-4665-88a5-4a5d2ed56627] - 2025-05-13
-- **Fixed**: Implemented `email-message` `from_ref` to link to `email-addr` SCO `value`, creating new SCOs if unmatched.
-- **Preserved**: "Copy to Clipboard", "Clear All SCOs", and existing features.
+## Version c4739258-1348-4b12-89c6-c3dd980a8d41 (Stable)
+*Date: May 14, 2025, 9:21 PM CEST*
 
-## [9c4dc825-1f6b-4b68-a9d3-4405ee391a39] - 2025-05-13
-- **Added**: "Copy to Clipboard" and "Clear All SCOs" buttons to the right of "Download JSON", styled with flex layout using Tailwind CSS.
-- **Preserved**: `network-traffic` `protocols` flat array and existing features.
+- **Fixed Syntax Error**:
+  - Corrected invalid syntax in `generateRelationshipBundle`:
+    ```javascript
+    // From: created: new Date().toISOString: new Date().toISOString()
+    // To: created: new Date().toISOString()
+    ```
+    Resolved `Script error.` caused by malformed property definition.
+- **Added Validation**:
+  - Added check in `generateRelationshipBundle` to skip objects with invalid `values`:
+    ```javascript
+    if (!obj.values || obj.values.length === 0) return;
+    ```
+    Prevents runtime errors for undefined or empty `values`.
+- **Features Retained**:
+  - Preserved all functionality from previous version, including fixed relationship references, updated SDO schema, and multi-value SCO handling.
+- **Stability**:
+  - Marked as stable after resolving syntax error and validating core functionality.
+- **Limitations**:
+  - Separate bundles for SCO Builder and Builder.
+  - Potential runtime errors in `openModal`, `downloadBundle` (unrelated to this fix).
 
-## [01f1622a-384b-4172-959a-995c37fb10c6] - 2025-05-13
-- **Fixed**: Corrected `network-traffic` `protocols` to use a flat array (e.g., `["tcp"]` instead of `[["tcp"]]`) for consistent bundle generation.
-- **Preserved**: Additional fields support and existing features.
-
-## [100639cd-4026-4e92-95f7-1403cbca6c5c] - 2025-05-13
-- **Added**: Support for additional fields: `rir`, `is_multipart`, `date`, `start`, `end`, `is_active`, `name`, `cpe`.
-- **Added**: Checkbox inputs for `is_multipart` and `is_active`.
-- **Preserved**: Modal import, clickable chips, and existing features.
-
-## [d733fdab-a40a-415b-97e9-1ece70ab4be9] - 2025-05-13
-- **Changed**: Made "Select SCO Type" a non-selectable placeholder using `<option value="" disabled selected hidden>`.
-- **Preserved**: Footer and existing features.
-
-## [b35784fe-25a2-4659-abed-ba0389716ec3] - 2025-05-13
-- **Added**: Footer: "Created by Grok, narrated by gbyx3".
-- **Preserved**: Clickable SCO chips and modal import.
-
-## [98e45612-8ee9-4fd6-8efa-5ae1ac2d9d47] - 2025-05-13
-- **Added**: Restored "Generate STIX Bundle" button.
-- **Added**: Clickable SCO chips for editing and modal-based JSON import.
-- **Preserved**: Basic SCO type support and bundle generation.
-
-## [685f2bac-c859-4ec9-886b-f75e9279dbb6] - 2025-05-13
-- **Initial Version**: Early implementation with non-clickable SCO chips and file-based import (not modal-based).
-- **Note**: Served as a fallback reversion option.
-
----
-
-**Note**: Dates reflect the project timeline, with the latest version updated on May 14, 2025. Each version preserves features from prior versions unless explicitly modified. The `[stable]` tag indicates a validated, reliable version. Limitations in earlier versions (e.g., duplicate SCOs, unresolved `from_ref`/`src_ref`/`dst_ref`, runtime errors) were addressed in later versions but may persist in reverted states.
+## Notes
+- **Breaking Changes**:
+  - Version `db2f2b01-7c61-4c70-9966-6701f94abcf3` introduced a new SDO schema, potentially breaking existing SDO-based workflows due to new fields and types.
+- **Known Issues**:
+  - Relationships may still require validation to ensure `source_ref` and `target_ref` align with bundle objects in edge cases.
+  - Import functionality may need refinement for handling complex SDO fields.
+- **Future Improvements**:
+  - Consider merging SCO Builder and Builder bundles.
+  - Add edit functionality for objects in Builder.
+  - Address remaining runtime errors in `openModal`, `downloadBundle`.

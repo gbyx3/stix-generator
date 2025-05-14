@@ -41,10 +41,17 @@
       'attack-pattern',
       'campaign',
       'course-of-action',
+      'grouping',
       'identity',
       'indicator',
+      'infrastructure',
       'intrusion-set',
+      'location',
       'malware',
+      'malware-analysis',
+      'note',
+      'observed-data',
+      'opinion',
       'report',
       'threat-actor',
       'tool',
@@ -169,7 +176,7 @@
       'windows-registry-key': {
         primaryField: 'key',
         additionalFields: [
-          { name: 'values', label: 'Registry Values (JSON)', type: 'textarea' }
+          { name: 'values', label: 'Registry Values (JSON)', type: 'text' }
         ]
       },
       'x509-certificate': {
@@ -195,62 +202,165 @@
       'attack-pattern': {
         primaryField: 'name',
         additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
+          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON, e.g., [{"kill_chain_name":"lockheed-martin","phase_name":"reconnaissance"}])', type: 'text' }
         ]
       },
       'campaign': {
         primaryField: 'name',
         additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
+          { name: 'first_seen', label: 'First Seen (ISO 8601)', type: 'datetime-local' },
+          { name: 'last_seen', label: 'Last Seen (ISO 8601)', type: 'datetime-local' },
+          { name: 'objective', label: 'Objective', type: 'text' }
         ]
       },
       'course-of-action': {
         primaryField: 'name',
         additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'action_type', label: 'Action Type', type: 'text' }
+        ]
+      },
+      'grouping': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'context', label: 'Context', type: 'text' },
+          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' }
         ]
       },
       'identity': {
         primaryField: 'name',
         additionalFields: [
-          { name: 'identity_class', label: 'Identity Class', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'identity_class', label: 'Identity Class', type: 'select', options: ['individual', 'group', 'organization', 'class', 'unknown'] },
+          { name: 'sectors', label: 'Sectors (comma-separated)', type: 'text' },
+          { name: 'contact_information', label: 'Contact Information', type: 'text' }
         ]
       },
       'indicator': {
-        primaryField: 'pattern',
+        primaryField: 'name',
         additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'pattern', label: 'Pattern', type: 'text' },
+          { name: 'pattern_type', label: 'Pattern Type', type: 'text' },
+          { name: 'pattern_version', label: 'Pattern Version', type: 'text' },
+          { name: 'valid_from', label: 'Valid From (ISO 8601)', type: 'datetime-local' },
+          { name: 'valid_until', label: 'Valid Until (ISO 8601)', type: 'datetime-local' },
+          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON)', type: 'text' }
+        ]
+      },
+      'infrastructure': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'infrastructure_types', label: 'Infrastructure Types (comma-separated)', type: 'text' },
+          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
+          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON)', type: 'text' }
         ]
       },
       'intrusion-set': {
         primaryField: 'name',
         additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
+          { name: 'first_seen', label: 'First Seen (ISO 8601)', type: 'datetime-local' },
+          { name: 'last_seen', label: 'Last Seen (ISO 8601)', type: 'datetime-local' },
+          { name: 'goals', label: 'Goals (comma-separated)', type: 'text' },
+          { name: 'resource_level', label: 'Resource Level', type: 'text' },
+          { name: 'primary_motivation', label: 'Primary Motivation', type: 'text' }
+        ]
+      },
+      'location': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'latitude', label: 'Latitude', type: 'number', step: 'any' },
+          { name: 'longitude', label: 'Longitude', type: 'number', step: 'any' },
+          { name: 'region', label: 'Region', type: 'text' },
+          { name: 'country', label: 'Country', type: 'text' },
+          { name: 'administrative_area', label: 'Administrative Area', type: 'text' },
+          { name: 'city', label: 'City', type: 'text' }
         ]
       },
       'malware': {
         primaryField: 'name',
         additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'malware_types', label: 'Malware Types (comma-separated)', type: 'text' },
+          { name: 'is_family', label: 'Is Family', type: 'checkbox' },
+          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
+          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON)', type: 'text' }
+        ]
+      },
+      'malware-analysis': {
+        primaryField: 'product',
+        additionalFields: [
+          { name: 'result', label: 'Result', type: 'text' },
+          { name: 'analysis_sco_refs', label: 'Analysis SCO Refs (comma-separated)', type: 'text' },
+          { name: 'submitted', label: 'Submitted (ISO 8601)', type: 'datetime-local' },
+          { name: 'analysis_started', label: 'Analysis Started (ISO 8601)', type: 'datetime-local' },
+          { name: 'analysis_ended', label: 'Analysis Ended (ISO 8601)', type: 'datetime-local' }
+        ]
+      },
+      'note': {
+        primaryField: 'content',
+        additionalFields: [
+          { name: 'abstract', label: 'Abstract', type: 'text' },
+          { name: 'authors', label: 'Authors (comma-separated)', type: 'text' },
+          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' }
+        ]
+      },
+      'observed-data': {
+        primaryField: 'number_observed',
+        additionalFields: [
+          { name: 'first_observed', label: 'First Observed (ISO 8601)', type: 'datetime-local' },
+          { name: 'last_observed', label: 'Last Observed (ISO 8601)', type: 'datetime-local' },
+          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' }
+        ]
+      },
+      'opinion': {
+        primaryField: 'opinion',
+        additionalFields: [
+          { name: 'explanation', label: 'Explanation', type: 'text' },
+          { name: 'authors', label: 'Authors (comma-separated)', type: 'text' },
+          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' },
+          { name: 'opinion', label: 'Opinion', type: 'select', options: ['strongly-disagree', 'disagree', 'neutral', 'agree', 'strongly-agree'] }
         ]
       },
       'report': {
         primaryField: 'name',
         additionalFields: [
           { name: 'description', label: 'Description', type: 'text' },
-          { name: 'published', label: 'Published (ISO 8601)', type: 'text' }
+          { name: 'report_types', label: 'Report Types (comma-separated)', type: 'text' },
+          { name: 'published', label: 'Published (ISO 8601)', type: 'datetime-local' },
+          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' }
         ]
       },
       'threat-actor': {
         primaryField: 'name',
         additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'threat_actor_types', label: 'Threat Actor Types (comma-separated)', type: 'text' },
+          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
+          { name: 'first_seen', label: 'First Seen (ISO 8601)', type: 'datetime-local' },
+          { name: 'last_seen', label: 'Last Seen (ISO 8601)', type: 'datetime-local' },
+          { name: 'roles', label: 'Roles (comma-separated)', type: 'text' },
+          { name: 'sophistication', label: 'Sophistication', type: 'text' },
+          { name: 'resource_level', label: 'Resource Level', type: 'text' },
+          { name: 'primary_motivation', label: 'Primary Motivation', type: 'text' }
         ]
       },
       'tool': {
         primaryField: 'name',
         additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' }
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'tool_types', label: 'Tool Types (comma-separated)', type: 'text' },
+          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
+          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON)', type: 'text' }
         ]
       },
       'vulnerability': {
@@ -262,7 +372,7 @@
     };
 
     const App = () => {
-      const [activeTab, setActiveTab] = useState('sco');
+      const [activeTab, setActiveTab] = useState('relationship');
       const [scoData, setScoData] = useState([]);
       const [currentScoType, setCurrentScoType] = useState('');
       const [currentValues, setCurrentValues] = useState('');
@@ -403,44 +513,44 @@
           obj => obj.name.toLowerCase() === objectName.trim().toLowerCase()
         );
         if (nameExists) {
-          setObjectNameError('Object with this name already exists.');
+          setObjectNameError('Object with this friendly name already exists.');
           return;
         }
 
-        let newObject;
+        const newObjects = [];
         if (relationshipObjectType === 'x509-certificate') {
           if (relationshipHashes.length === 0) return;
-          newObject = {
+          newObjects.push({
             type: relationshipObjectType,
             name: objectName.trim(),
             values: [relationshipHashes],
             additionalFields: {},
             id: `${relationshipObjectType}--${crypto.randomUUID()}`
-          };
-        } else if (scoTypes.includes(relationshipObjectType)) {
+          });
+        } else if (scoTypes.includes(relationshipObjectType) && multiLineScoTypes.includes(relationshipObjectType)) {
           if (!relationshipValues.trim()) return;
-          const values = multiLineScoTypes.includes(relationshipObjectType)
-            ? relationshipValues.split('\n').map(v => v.trim()).filter(v => v)
-            : [relationshipValues.trim()].filter(v => v);
-          newObject = {
-            type: relationshipObjectType,
-            name: objectName.trim(),
-            values,
-            additionalFields: { ...relationshipAdditionalFields },
-            id: `${relationshipObjectType}--${crypto.randomUUID()}`
-          };
+          const values = relationshipValues.split(',').map(v => v.trim()).filter(v => v);
+          values.forEach(value => {
+            newObjects.push({
+              type: relationshipObjectType,
+              name: `${objectName.trim()} (${value})`,
+              values: [value],
+              additionalFields: { ...relationshipAdditionalFields },
+              id: `${relationshipObjectType}--${crypto.randomUUID()}`
+            });
+          });
         } else {
           if (!relationshipValues.trim()) return;
-          newObject = {
+          newObjects.push({
             type: relationshipObjectType,
             name: objectName.trim(),
             values: [relationshipValues.trim()],
             additionalFields: { ...relationshipAdditionalFields },
             id: `${relationshipObjectType}--${crypto.randomUUID()}`
-          };
+          });
         }
 
-        setCreatedObjects([...createdObjects, newObject]);
+        setCreatedObjects([...createdObjects, ...newObjects]);
         setObjectNameError(null);
         setRelationshipObjectType('');
         setObjectName('');
@@ -635,7 +745,9 @@
                 newObj = {
                   type: obj.type,
                   name: proposedName,
-                  values: config.primaryField === 'protocols' ? primaryValue : [primaryValue].filter(v => v),
+                  values: config.primaryField === 'protocols' || config.primaryField === 'number_observed' || config.primaryField === 'opinion'
+                    ? primaryValue
+                    : [primaryValue].filter(v => v),
                   additionalFields,
                   id: obj.id
                 };
@@ -801,6 +913,8 @@
         };
 
         createdObjects.forEach(obj => {
+          if (!obj.values || obj.values.length === 0) return;
+
           if (obj.type === 'x509-certificate') {
             const stixObj = {
               type: obj.type,
@@ -815,47 +929,47 @@
             bundle.objects.push(stixObj);
           } else {
             const config = scoTypes.includes(obj.type) ? scoConfig[obj.type] : sdoConfig[obj.type];
-            obj.values.forEach(value => {
-              const stixObj = {
-                type: obj.type,
-                id: `${obj.type}--${crypto.randomUUID()}`,
-                spec_version: '2.1',
-                created: new Date().toISOString()
-              };
+            const stixObj = {
+              type: obj.type,
+              id: obj.id,
+              spec_version: '2.1',
+              created: new Date().toISOString()
+            };
 
-              if (config.primaryField === 'protocols') {
-                stixObj[config.primaryField] = obj.values;
-              } else if (config.primaryField === 'pid') {
-                stixObj[config.primaryField] = parseInt(value) || value;
-              } else {
-                stixObj[config.primaryField] = value;
-              }
+            if (config.primaryField === 'protocols' || config.primaryField === 'number_observed' || config.primaryField === 'opinion') {
+              stixObj[config.primaryField] = config.primaryField === 'number_observed' ? parseInt(obj.values[0]) : obj.values[0];
+            } else if (config.primaryField === 'pid') {
+              stixObj[config.primaryField] = parseInt(obj.values[0]) || obj.values[0];
+            } else {
+              stixObj[config.primaryField] = obj.values[0];
+            }
 
-              Object.entries(obj.additionalFields).forEach(([key, val]) => {
-                if (val) {
-                  if (key.includes('.')) {
-                    const [parent, child] = key.split('.');
-                    stixObj[parent] = { ...stixObj[parent], [child]: val };
-                  } else if (key === 'to_refs') {
-                    stixObj[key] = val.split(',').map(v => v.trim()).filter(v => v);
-                  } else if (key === 'values' && obj.type === 'windows-registry-key') {
-                    try {
-                      stixObj[key] = JSON.parse(val);
-                    } catch {
-                      stixObj[key] = val;
-                    }
-                  } else if (['src_port', 'dst_port'].includes(key)) {
-                    stixObj[key] = parseInt(val) || val;
-                  } else if (['is_multipart', 'is_active', 'is_service_account', 'is_privileged', 'can_escalate_privs', 'is_disabled'].includes(key)) {
-                    stixObj[key] = val === 'true' || val === true;
-                  } else {
-                    stixObj[key] = val;
+            Object.entries(obj.additionalFields).forEach(([key, val]) => {
+              if (val) {
+                if (key.includes('.')) {
+                  const [parent, child] = key.split('.');
+                  stixObj[parent] = { ...stixObj[parent], [child]: val };
+                } else if (['aliases', 'to_refs', 'sectors', 'infrastructure_types', 'malware_types', 'tool_types', 'threat_actor_types', 'roles', 'goals', 'authors', 'object_refs', 'analysis_sco_refs', 'report_types'].includes(key)) {
+                  stixObj[key] = val.split(',').map(v => v.trim()).filter(v => v);
+                } else if (['kill_chain_phases'].includes(key)) {
+                  try {
+                    stixObj[key] = JSON.parse(val);
+                  } catch {
+                    stixObj[key] = [];
                   }
+                } else if (['latitude', 'longitude'].includes(key)) {
+                  stixObj[key] = parseFloat(val) || 0.0;
+                } else if (['number_observed'].includes(key)) {
+                  stixObj[key] = parseInt(val) || 1;
+                } else if (['is_multipart', 'is_active', 'is_service_account', 'is_privileged', 'can_escalate_privs', 'is_disabled', 'is_family'].includes(key)) {
+                  stixObj[key] = val === 'true' || val === true;
+                } else {
+                  stixObj[key] = val;
                 }
-              });
-
-              bundle.objects.push(stixObj);
+              }
             });
+
+            bundle.objects.push(stixObj);
           }
         });
 
@@ -925,19 +1039,19 @@
           <div className="flex border-b mb-4">
             <button
               className={`px-4 py-2 -mb-px text-sm font-medium ${
+                activeTab === 'relationship' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'
+              }`}
+              onClick={() => setActiveTab('relationship')}
+            >
+              Builder
+            </button>
+            <button
+              className={`px-4 py-2 -mb-px text-sm font-medium ${
                 activeTab === 'sco' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'
               }`}
               onClick={() => setActiveTab('sco')}
             >
               SCO Builder
-            </button>
-            <button
-              className={`px-4 py-2 -mb-px text-sm font-medium ${
-                activeTab === 'relationship' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'
-              }`}
-              onClick={() => setActiveTab('relationship')}
-            >
-              Relationship Builder
             </button>
           </div>
 
@@ -1048,15 +1162,7 @@
                   {scoConfig[currentScoType].additionalFields.map(field => (
                     <div key={field.name} className="mb-2">
                       <label className="block text-sm font-medium mb-1">{field.label}</label>
-                      {field.type === 'textarea' ? (
-                        <input
-                          type="text"
-                          value={additionalFields[field.name] || ''}
-                          onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
-                          className="w-full p-2 border rounded"
-                          placeholder={`Enter ${field.label}`}
-                        />
-                      ) : field.type === 'checkbox' ? (
+                      {field.type === 'checkbox' ? (
                         <input
                           type="checkbox"
                           checked={additionalFields[field.name] === true || additionalFields[field.name] === 'true'}
@@ -1185,10 +1291,10 @@
             </div>
           )}
 
-          {/* Relationship Builder Tab */}
+          {/* Builder Tab */}
           {activeTab === 'relationship' && (
             <div>
-              <h2 className="text-lg font-semibold mb-4">Relationship Builder</h2>
+              <h2 className="text-lg font-semibold mb-4">Builder</h2>
 
               {/* Create Object Form */}
               <div className="mb-8">
@@ -1226,7 +1332,7 @@
                 {relationshipObjectType && (
                   <div>
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">Object Name</label>
+                      <label className="block text-sm font-medium mb-1">Friendly Name</label>
                       <input
                         type="text"
                         value={objectName}
@@ -1235,7 +1341,7 @@
                           setObjectNameError(null);
                         }}
                         className="w-full p-2 border rounded"
-                        placeholder="Enter a name for this object"
+                        placeholder="Enter a friendly name for this object"
                       />
                       {objectNameError && (
                         <div className="mt-2 p-2 bg-red-100 text-red-700 rounded">
@@ -1299,22 +1405,13 @@
                         <label className="block text-sm font-medium mb-1">
                           Enter {(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).primaryField}
                         </label>
-                        {multiLineScoTypes.includes(relationshipObjectType) ? (
-                          <textarea
-                            value={relationshipValues}
-                            onChange={(e) => setRelationshipValues(e.target.value)}
-                            className="w-full p-2 border rounded h-32"
-                            placeholder={`Enter ${(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).primaryField}, one per line`}
-                          />
-                        ) : (
-                          <input
-                            type={relationshipObjectType === 'process' ? 'number' : 'text'}
-                            value={relationshipValues}
-                            onChange={(e) => setRelationshipValues(e.target.value)}
-                            className="w-full p-2 border rounded"
-                            placeholder={`Enter ${(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).primaryField}`}
-                          />
-                        )}
+                        <input
+                          type={relationshipObjectType === 'process' ? 'number' : 'text'}
+                          value={relationshipValues}
+                          onChange={(e) => setRelationshipValues(e.target.value)}
+                          className="w-full p-2 border rounded"
+                          placeholder={`Enter ${(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).primaryField}`}
+                        />
                       </div>
                     )}
 
@@ -1324,24 +1421,28 @@
                         {(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).additionalFields.map(field => (
                           <div key={field.name} className="mb-2">
                             <label className="block text-sm font-medium mb-1">{field.label}</label>
-                            {field.type === 'textarea' ? (
-                              <input
-                                type="text"
-                                value={relationshipAdditionalFields[field.name] || ''}
-                                onChange={(e) => handleRelationshipAdditionalFieldChange(field.name, e.target.value)}
-                                className="w-full p-2 border rounded"
-                                placeholder={`Enter ${field.label}`}
-                              />
-                            ) : field.type === 'checkbox' ? (
+                            {field.type === 'checkbox' ? (
                               <input
                                 type="checkbox"
                                 checked={relationshipAdditionalFields[field.name] === true || relationshipAdditionalFields[field.name] === 'true'}
                                 onChange={(e) => handleRelationshipAdditionalFieldChange(field.name, e.target.checked)}
                                 className="p-2 border rounded"
                               />
+                            ) : field.type === 'select' ? (
+                              <select
+                                value={relationshipAdditionalFields[field.name] || ''}
+                                onChange={(e) => handleRelationshipAdditionalFieldChange(field.name, e.target.value)}
+                                className="w-full p-2 border rounded"
+                              >
+                                <option value="" disabled>Select {field.label}</option>
+                                {field.options.map(option => (
+                                  <option key={option} value={option}>{option}</option>
+                                ))}
+                              </select>
                             ) : (
                               <input
                                 type={field.type}
+                                step={field.step || undefined}
                                 value={relationshipAdditionalFields[field.name] || ''}
                                 onChange={(e) => handleRelationshipAdditionalFieldChange(field.name, e.target.value)}
                                 className="w-full p-2 border rounded"
