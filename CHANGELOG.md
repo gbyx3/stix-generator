@@ -2,10 +2,25 @@
 
 All notable changes to the STIX Bundle Generator project are documented in this file.
 
+## [aad2d30f-0f63-4a7b-a4c1-b8dcf26ca129] - 2025-05-14 [stable]
+- **Fixed**: Resolved `SyntaxError: Unexpected token, expected "}"` in `x509-certificate` dropdown by correcting JSX syntax in `hashTypes.map`, removing erroneous `) => (` and duplicate `<option` tag.
+- **Preserved**: Multiline `textarea` for `ipv4-addr`, `ipv6-addr`, `domain-name`, `mac-addr`, `mutex`, `url` with accurate value counts in "Added SCOs", single-line `input` for other SCOs, aggregated chip counts, `user-account` fields, and all existing features.
+- **Note**: Marked as stable following validation of runtime error fix and overall functionality.
+
+## [50e216c4-2cab-48a0-a63d-9648cdea2905] - 2025-05-14
+- **Fixed**: Updated "Added SCOs" chip count for `ipv4-addr`, `ipv6-addr`, `domain-name`, `mac-addr`, `mutex`, `url` to reflect the total number of values in their `values` arrays (e.g., `ipv4-addr (2)` for two IPs). Maintained SCO object counts for other types and hash counts for `x509-certificate`.
+- **Preserved**: Multiline `textarea` for specified SCOs, single-line `input` for others, and all existing features.
+- **Issue**: Introduced `SyntaxError` in `x509-certificate` dropdown due to JSX typo.
+
+## [57ef974f-d16b-4940-b151-2f5ae63854b3] - 2025-05-14
+- **Changed**: Replaced single-line `input` with multiline `textarea` for primary fields of `ipv4-addr`, `ipv6-addr`, `domain-name`, `mac-addr`, `mutex`, `url`. Enabled multiline submission (one value per line) for these SCOs.
+- **Preserved**: Single-line `input` for other SCOs, aggregated chip counts, `user-account` fields, and all existing features.
+- **Issue**: "Added SCOs" chip count did not reflect the number of values for multiline SCOs (e.g., showed `ipv4-addr (1)` for two IPs).
+
 ## [267b2709-b148-4ffd-a2ba-f08dc5892549] - 2025-05-13 [stable]
 - **Added**: New fields to `user-account` SCO type: `display_name` (text input), `is_service_account` (checkbox), `is_privileged` (checkbox), `can_escalate_privs` (checkbox), `is_disabled` (checkbox), alongside existing `user_id` and `account_type`.
 - **Changed**: Updated `generateBundle` to handle new `user-account` checkbox fields as booleans.
-- **Preserved**: Aggregated SCO chip counts, single-line inputs for primary fields and `windows-registry-key` `values`, single-value submission, and all existing features (20 SCO types, clickable chips, modal import, buttons, `x509-certificate` hash system, `network-traffic` `protocols` flat array, footer, placeholder).
+- **Preserved**: Aggregated SCO chip counts, single-line inputs for primary fields and `windows-registry-key` `values`, single-value submission, and all existing features.
 - **Note**: Marked as stable following validation of new `user-account` fields and overall functionality.
 
 ## [ebba5370-9bc3-48d0-b86f-4980f40a4ba8] - 2025-05-13
@@ -81,4 +96,4 @@ All notable changes to the STIX Bundle Generator project are documented in this 
 
 ---
 
-**Note**: Dates are standardized to May 13, 2025, based on the project timeline. Each version preserves features from prior versions unless explicitly modified. The `[stable]` tag indicates a validated, reliable version. Limitations in earlier versions (e.g., duplicate SCOs, unresolved `from_ref`/`src_ref`/`dst_ref`, runtime errors) were addressed in later versions but may persist in reverted states.
+**Note**: Dates reflect the project timeline, with the latest version updated on May 14, 2025. Each version preserves features from prior versions unless explicitly modified. The `[stable]` tag indicates a validated, reliable version. Limitations in earlier versions (e.g., duplicate SCOs, unresolved `from_ref`/`src_ref`/`dst_ref`, runtime errors) were addressed in later versions but may persist in reverted states.
