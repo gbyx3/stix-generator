@@ -37,6 +37,29 @@
       'crypto-currency-transaction'
     ];
 
+    const sdoTypes = [
+      'attack-pattern',
+      'campaign',
+      'course-of-action',
+      'identity',
+      'indicator',
+      'intrusion-set',
+      'malware',
+      'report',
+      'threat-actor',
+      'tool',
+      'vulnerability'
+    ];
+
+    const relationshipTypes = [
+      'related-to',
+      'indicates',
+      'uses',
+      'mitigates',
+      'attributed-to',
+      'targets'
+    ];
+
     const hashTypes = ['MD5', 'SHA-1', 'SHA-256', 'SHA-512'];
 
     const scoConfig = {
@@ -168,7 +191,78 @@
       }
     };
 
+    const sdoConfig = {
+      'attack-pattern': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      },
+      'campaign': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      },
+      'course-of-action': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      },
+      'identity': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'identity_class', label: 'Identity Class', type: 'text' }
+        ]
+      },
+      'indicator': {
+        primaryField: 'pattern',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      },
+      'intrusion-set': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      },
+      'malware': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      },
+      'report': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' },
+          { name: 'published', label: 'Published (ISO 8601)', type: 'text' }
+        ]
+      },
+      'threat-actor': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      },
+      'tool': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      },
+      'vulnerability': {
+        primaryField: 'name',
+        additionalFields: [
+          { name: 'description', label: 'Description', type: 'text' }
+        ]
+      }
+    };
+
     const App = () => {
+      const [activeTab, setActiveTab] = useState('sco');
       const [scoData, setScoData] = useState([]);
       const [currentScoType, setCurrentScoType] = useState('');
       const [currentValues, setCurrentValues] = useState('');
@@ -177,19 +271,46 @@
       const [currentHashValue, setCurrentHashValue] = useState('');
       const [currentHashType, setCurrentHashType] = useState(hashTypes[0]);
       const [stixBundle, setStixBundle] = useState(null);
+      const [relationshipBundle, setRelationshipBundle] = useState(null);
       const [importError, setImportError] = useState(null);
-      const [showModal, setShowModal] = useState(false);
+      const [relationshipImportError, setRelationshipImportError] = useState(null);
+      const [showScoImportModal, setShowScoImportModal] = useState(false);
+      const [showRelationshipImportModal, setShowRelationshipImportModal] = useState(false);
       const [importJson, setImportJson] = useState('');
+      const [relationshipImportJson, setRelationshipImportJson] = useState('');
       const [editingIndex, setEditingIndex] = useState(null);
       const [copied, setCopied] = useState(false);
-      const modalRef = useRef(null);
-      const textareaRef = useRef(null);
+      const [relationshipCopied, setRelationshipCopied] = useState(false);
+      const [relationshipObjectType, setRelationshipObjectType] = useState('');
+      const [createdObjects, setCreatedObjects] = useState([]);
+      const [objectName, setObjectName] = useState('');
+      const [objectNameError, setObjectNameError] = useState(null);
+      const [relationshipValues, setRelationshipValues] = useState('');
+      const [relationshipAdditionalFields, setRelationshipAdditionalFields] = useState({});
+      const [relationshipHashes, setRelationshipHashes] = useState([]);
+      const [relationshipHashValue, setRelationshipHashValue] = useState('');
+      const [relationshipHashType, setRelationshipHashType] = useState(hashTypes[0]);
+      const [sourceObjectIndex, setSourceObjectIndex] = useState('');
+      const [targetObjectIndex, setTargetObjectIndex] = useState('');
+      const [relationshipType, setRelationshipType] = useState('');
+      const [relationships, setRelationships] = useState([]);
+      const scoModalRef = useRef(null);
+      const scoTextareaRef = useRef(null);
+      const relationshipModalRef = useRef(null);
+      const relationshipTextareaRef = useRef(null);
 
       const multiLineScoTypes = ['ipv4-addr', 'ipv6-addr', 'domain-name', 'mac-addr', 'mutex', 'url'];
 
       const handleAdditionalFieldChange = (name, value) => {
         setAdditionalFields({
           ...additionalFields,
+          [name]: typeof value === 'boolean' ? value : value.toString()
+        });
+      };
+
+      const handleRelationshipAdditionalFieldChange = (name, value) => {
+        setRelationshipAdditionalFields({
+          ...relationshipAdditionalFields,
           [name]: typeof value === 'boolean' ? value : value.toString()
         });
       };
@@ -201,8 +322,19 @@
         setCurrentHashType(hashTypes[0]);
       };
 
+      const addRelationshipHash = () => {
+        if (!relationshipHashValue.trim() || !relationshipHashType) return;
+        setRelationshipHashes([...relationshipHashes, { type: relationshipHashType, value: relationshipHashValue.trim() }]);
+        setRelationshipHashValue('');
+        setRelationshipHashType(hashTypes[0]);
+      };
+
       const removeHash = (index) => {
         setCurrentHashes(currentHashes.filter((_, i) => i !== index));
+      };
+
+      const removeRelationshipHash = (index) => {
+        setRelationshipHashes(relationshipHashes.filter((_, i) => i !== index));
       };
 
       const editSco = (index) => {
@@ -263,6 +395,88 @@
         setAdditionalFields({});
       };
 
+      const saveRelationshipObject = () => {
+        if (!relationshipObjectType || !objectName.trim()) return;
+
+        // Check for duplicate object name (case-insensitive)
+        const nameExists = createdObjects.some(
+          obj => obj.name.toLowerCase() === objectName.trim().toLowerCase()
+        );
+        if (nameExists) {
+          setObjectNameError('Object with this name already exists.');
+          return;
+        }
+
+        let newObject;
+        if (relationshipObjectType === 'x509-certificate') {
+          if (relationshipHashes.length === 0) return;
+          newObject = {
+            type: relationshipObjectType,
+            name: objectName.trim(),
+            values: [relationshipHashes],
+            additionalFields: {},
+            id: `${relationshipObjectType}--${crypto.randomUUID()}`
+          };
+        } else if (scoTypes.includes(relationshipObjectType)) {
+          if (!relationshipValues.trim()) return;
+          const values = multiLineScoTypes.includes(relationshipObjectType)
+            ? relationshipValues.split('\n').map(v => v.trim()).filter(v => v)
+            : [relationshipValues.trim()].filter(v => v);
+          newObject = {
+            type: relationshipObjectType,
+            name: objectName.trim(),
+            values,
+            additionalFields: { ...relationshipAdditionalFields },
+            id: `${relationshipObjectType}--${crypto.randomUUID()}`
+          };
+        } else {
+          if (!relationshipValues.trim()) return;
+          newObject = {
+            type: relationshipObjectType,
+            name: objectName.trim(),
+            values: [relationshipValues.trim()],
+            additionalFields: { ...relationshipAdditionalFields },
+            id: `${relationshipObjectType}--${crypto.randomUUID()}`
+          };
+        }
+
+        setCreatedObjects([...createdObjects, newObject]);
+        setObjectNameError(null);
+        setRelationshipObjectType('');
+        setObjectName('');
+        setRelationshipValues('');
+        setRelationshipHashes([]);
+        setRelationshipAdditionalFields({});
+      };
+
+      const saveRelationship = () => {
+        if (sourceObjectIndex === '' || targetObjectIndex === '' || !relationshipType) return;
+        if (sourceObjectIndex === targetObjectIndex) return;
+
+        const sourceObject = createdObjects[sourceObjectIndex];
+        const targetObject = createdObjects[targetObjectIndex];
+
+        const newRelationship = {
+          type: 'relationship',
+          id: `relationship--${crypto.randomUUID()}`,
+          source_ref: sourceObject.id,
+          target_ref: targetObject.id,
+          relationship_type: relationshipType,
+          source_name: sourceObject.name,
+          target_name: targetObject.name
+        };
+
+        setRelationships([...relationships, newRelationship]);
+        setSourceObjectIndex('');
+        setTargetObjectIndex('');
+        setRelationshipType('');
+      };
+
+      const removeRelationship = (index) => {
+        setRelationships(relationships.filter((_, i) => i !== index));
+        setRelationshipBundle(null);
+      };
+
       const removeSco = (index) => {
         setScoData(scoData.filter((_, i) => i !== index));
         setStixBundle(null);
@@ -278,6 +492,14 @@
         navigator.clipboard.writeText(JSON.stringify(stixBundle, null, 2)).then(() => {
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
+        });
+      };
+
+      const copyRelationshipToClipboard = () => {
+        if (!relationshipBundle) return;
+        navigator.clipboard.writeText(JSON.stringify(relationshipBundle, null, 2)).then(() => {
+          setRelationshipCopied(true);
+          setTimeout(() => setRelationshipCopied(false), 2000);
         });
       };
 
@@ -335,7 +557,7 @@
           } else {
             setScoData([...scoData, ...newScos]);
             setImportError(null);
-            setShowModal(false);
+            setShowScoImportModal(false);
             setImportJson('');
           }
         } catch (err) {
@@ -343,33 +565,153 @@
         }
       };
 
-      const openModal = () => {
-        setShowModal(true);
+      const handleRelationshipBundleImport = () => {
+        if (!relationshipImportJson.trim()) {
+          setRelationshipImportError('Please paste a STIX bundle JSON.');
+          return;
+        }
+        try {
+          const bundle = JSON.parse(relationshipImportJson);
+          if (bundle.type !== 'bundle' || !Array.isArray(bundle.objects)) {
+            throw new Error('Invalid STIX bundle: Must have type "bundle" and an "objects" array.');
+          }
+
+          const newObjects = [];
+          const newRelationships = [];
+          const idToNameMap = {};
+
+          // Import SCOs and SDOs
+          bundle.objects
+            .filter(obj => scoTypes.includes(obj.type) || sdoTypes.includes(obj.type))
+            .forEach(obj => {
+              const isSco = scoTypes.includes(obj.type);
+              const config = isSco ? scoConfig[obj.type] : sdoConfig[obj.type];
+              let newObj;
+
+              // Skip if object name already exists
+              const proposedName = obj[config.primaryField] || `${obj.type}-${obj.id.substring(0, 8)}`;
+              if (createdObjects.some(existing => existing.name.toLowerCase() === proposedName.toLowerCase())) {
+                return;
+              }
+
+              if (obj.type === 'x509-certificate') {
+                const hashes = Object.entries(obj.hashes || {}).map(([type, value]) => ({
+                  type,
+                  value
+                }));
+                newObj = {
+                  type: obj.type,
+                  name: `Cert-${hashes[0]?.value?.substring(0, 8) || obj.id.substring(0, 8)}`,
+                  values: [hashes],
+                  additionalFields: {},
+                  id: obj.id
+                };
+              } else {
+                const primaryValue = obj[config.primaryField];
+                const additionalFields = {};
+                config.additionalFields.forEach(field => {
+                  if (field.name.includes('.')) {
+                    const [parent, child] = field.name.split('.');
+                    if (obj[parent] && obj[parent][child]) {
+                      additionalFields[field.name] = obj[parent][child];
+                    }
+                  } else if (obj[field.name] !== undefined) {
+                    additionalFields[field.name] = Array.isArray(obj[field.name])
+                      ? obj[field.name].join(', ')
+                      : obj[field.name];
+                  }
+                });
+                newObj = {
+                  type: obj.type,
+                  name: proposedName,
+                  values: config.primaryField === 'protocols' ? primaryValue : [primaryValue].filter(v => v),
+                  additionalFields,
+                  id: obj.id
+                };
+              }
+
+              newObjects.push(newObj);
+              idToNameMap[obj.id] = newObj.name;
+            });
+
+          // Import Relationships
+          bundle.objects
+            .filter(obj => obj.type === 'relationship')
+            .forEach(obj => {
+              if (idToNameMap[obj.source_ref] && idToNameMap[obj.target_ref]) {
+                newRelationships.push({
+                  type: obj.type,
+                  id: obj.id,
+                  source_ref: obj.source_ref,
+                  target_ref: obj.target_ref,
+                  relationship_type: obj.relationship_type,
+                  source_name: idToNameMap[obj.source_ref],
+                  target_name: idToNameMap[obj.target_ref]
+                });
+              }
+            });
+
+          if (newObjects.length === 0 && newRelationships.length === 0) {
+            setRelationshipImportError('No valid SCOs, SDOs, or relationships found in the bundle.');
+          } else {
+            setCreatedObjects([...createdObjects, ...newObjects]);
+            setRelationships([...relationships, ...newRelationships]);
+            setRelationshipImportError(null);
+            setShowRelationshipImportModal(false);
+            setRelationshipImportJson('');
+          }
+        } catch (err) {
+          setRelationshipImportError(`Failed to import bundle: ${err.message}`);
+        }
+      };
+
+      const openScoModal = () => {
+        setShowScoImportModal(true);
         setImportError(null);
         setImportJson('');
       };
 
-      const closeModal = () => {
-        setShowModal(false);
+      const closeScoModal = () => {
+        setShowScoImportModal(false);
         setImportError(null);
         setImportJson('');
+      };
+
+      const openRelationshipModal = () => {
+        setShowRelationshipImportModal(true);
+        setRelationshipImportError(null);
+        setRelationshipImportJson('');
+      };
+
+      const closeRelationshipModal = () => {
+        setShowRelationshipImportModal(false);
+        setRelationshipImportError(null);
+        setRelationshipImportJson('');
       };
 
       useEffect(() => {
-        if (showModal && textareaRef.current) {
-          textareaRef.current.focus();
+        if (showScoImportModal && scoTextareaRef.current) {
+          scoTextareaRef.current.focus();
         }
-      }, [showModal]);
+        if (showRelationshipImportModal && relationshipTextareaRef.current) {
+          relationshipTextareaRef.current.focus();
+        }
+      }, [showScoImportModal, showRelationshipImportModal]);
 
       useEffect(() => {
         const handleKeyDown = (e) => {
-          if (e.key === 'Escape' && showModal) {
-            closeModal();
+          if (e.key === 'Escape') {
+            if (showScoImportModal) {
+              closeScoModal();
+            }
+            if (showRelationshipImportModal) {
+              closeRelationshipModal();
+            }
           }
         };
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-      }, [showModal]);
+      }, [showScoImportModal, showRelationshipImportModal]);
 
       const generateBundle = () => {
         const bundle = {
@@ -440,6 +782,87 @@
         setStixBundle(bundle);
       };
 
+      const generateRelationshipBundle = () => {
+        const bundle = {
+          type: 'bundle',
+          id: `bundle--${crypto.randomUUID()}`,
+          objects: []
+        };
+
+        createdObjects.forEach(obj => {
+          if (obj.type === 'x509-certificate') {
+            const stixObj = {
+              type: obj.type,
+              id: obj.id,
+              spec_version: '2.1',
+              created: new Date().toISOString(),
+              hashes: obj.values[0].reduce((acc, hash) => ({
+                ...acc,
+                [hash.type]: hash.value
+              }), {})
+            };
+            bundle.objects.push(stixObj);
+          } else {
+            const config = scoTypes.includes(obj.type) ? scoConfig[obj.type] : sdoConfig[obj.type];
+            obj.values.forEach(value => {
+              const stixObj = {
+                type: obj.type,
+                id: `${obj.type}--${crypto.randomUUID()}`,
+                spec_version: '2.1',
+                created: new Date().toISOString()
+              };
+
+              if (config.primaryField === 'protocols') {
+                stixObj[config.primaryField] = obj.values;
+              } else if (config.primaryField === 'pid') {
+                stixObj[config.primaryField] = parseInt(value) || value;
+              } else {
+                stixObj[config.primaryField] = value;
+              }
+
+              Object.entries(obj.additionalFields).forEach(([key, val]) => {
+                if (val) {
+                  if (key.includes('.')) {
+                    const [parent, child] = key.split('.');
+                    stixObj[parent] = { ...stixObj[parent], [child]: val };
+                  } else if (key === 'to_refs') {
+                    stixObj[key] = val.split(',').map(v => v.trim()).filter(v => v);
+                  } else if (key === 'values' && obj.type === 'windows-registry-key') {
+                    try {
+                      stixObj[key] = JSON.parse(val);
+                    } catch {
+                      stixObj[key] = val;
+                    }
+                  } else if (['src_port', 'dst_port'].includes(key)) {
+                    stixObj[key] = parseInt(val) || val;
+                  } else if (['is_multipart', 'is_active', 'is_service_account', 'is_privileged', 'can_escalate_privs', 'is_disabled'].includes(key)) {
+                    stixObj[key] = val === 'true' || val === true;
+                  } else {
+                    stixObj[key] = val;
+                  }
+                }
+              });
+
+              bundle.objects.push(stixObj);
+            });
+          }
+        });
+
+        relationships.forEach(rel => {
+          bundle.objects.push({
+            type: rel.type,
+            id: rel.id,
+            source_ref: rel.source_ref,
+            target_ref: rel.target_ref,
+            relationship_type: rel.relationship_type,
+            spec_version: '2.1',
+            created: new Date().toISOString()
+          });
+        });
+
+        setRelationshipBundle(bundle);
+      };
+
       const downloadBundle = () => {
         if (!stixBundle) return;
         const blob = new Blob([JSON.stringify(stixBundle, null, 2)], { type: 'application/json' });
@@ -447,6 +870,17 @@
         const a = document.createElement('a');
         a.href = url;
         a.download = 'stix_bundle.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const downloadRelationshipBundle = () => {
+        if (!relationshipBundle) return;
+        const blob = new Blob([JSON.stringify(relationshipBundle, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'relationship_bundle.json';
         a.click();
         URL.revokeObjectURL(url);
       };
@@ -476,92 +910,201 @@
         <div className="container mx-auto p-4 max-w-4xl">
           <h1 className="text-2xl font-bold mb-4">STIX Bundle Generator</h1>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1" htmlFor="sco-type">Select SCO Type</label>
-            <select
-              id="sco-type"
-              value={currentScoType}
-              onChange={(e) => {
-                setCurrentScoType(e.target.value);
-                setAdditionalFields({});
-                setCurrentHashes([]);
-                setCurrentValues('');
-                setEditingIndex(null);
-              }}
-              className="w-full p-2 border rounded"
-              aria-label="Select SCO Type"
+          {/* Tabs */}
+          <div className="flex border-b mb-4">
+            <button
+              className={`px-4 py-2 -mb-px text-sm font-medium ${
+                activeTab === 'sco' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'
+              }`}
+              onClick={() => setActiveTab('sco')}
             >
-              <option value="" disabled selected hidden>Select SCO Type</option>
-              {scoTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+              SCO Builder
+            </button>
+            <button
+              className={`px-4 py-2 -mb-px text-sm font-medium ${
+                activeTab === 'relationship' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'
+              }`}
+              onClick={() => setActiveTab('relationship')}
+            >
+              Relationship Builder
+            </button>
           </div>
 
-          {currentScoType && currentScoType !== 'x509-certificate' && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">
-                Enter {scoConfig[currentScoType].primaryField}
-              </label>
-              {multiLineScoTypes.includes(currentScoType) ? (
-                <textarea
-                  value={currentValues}
-                  onChange={(e) => setCurrentValues(e.target.value)}
-                  className="w-full p-2 border rounded h-32"
-                  placeholder={`Enter ${scoConfig[currentScoType].primaryField}, one per line`}
-                />
-              ) : (
-                <input
-                  type={currentScoType === 'process' ? 'number' : 'text'}
-                  value={currentValues}
-                  onChange={(e) => setCurrentValues(e.target.value)}
-                  className="w-full p-2 border rounded"
-                  placeholder={`Enter ${scoConfig[currentScoType].primaryField}`}
-                />
-              )}
-            </div>
-          )}
-
-          {currentScoType === 'x509-certificate' && (
-            <div className="mb-4">
-              <h3 className="text-sm font-medium mb-2">Add Hashes</h3>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={currentHashValue}
-                  onChange={(e) => setCurrentHashValue(e.target.value)}
-                  className="w-2/3 p-2 border rounded"
-                  placeholder="Enter hash"
-                />
+          {/* SCO Builder Tab */}
+          {activeTab === 'sco' && (
+            <div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1" htmlFor="sco-type">Select SCO Type</label>
                 <select
-                  value={currentHashType}
-                  onChange={(e) => setCurrentHashType(e.target.value)}
-                  className="w-1/3 p-2 border rounded"
+                  id="sco-type"
+                  value={currentScoType}
+                  onChange={(e) => {
+                    setCurrentScoType(e.target.value);
+                    setAdditionalFields({});
+                    setCurrentHashes([]);
+                    setCurrentValues('');
+                    setEditingIndex(null);
+                  }}
+                  className="w-full p-2 border rounded"
+                  aria-label="Select SCO Type"
                 >
-                  {hashTypes.map(type => (
+                  <option value="" disabled selected hidden>Select SCO Type</option>
+                  {scoTypes.map(type => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
               </div>
-              <button
-                onClick={addHash}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-                disabled={!currentHashValue.trim()}
-              >
-                Add Hash
-              </button>
-              {currentHashes.length > 0 && (
-                <div className="mt-2">
-                  <h4 className="text-sm font-medium">Added Hashes</h4>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {currentHashes.map((hash, index) => (
+
+              {currentScoType && currentScoType !== 'x509-certificate' && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">
+                    Enter {scoConfig[currentScoType].primaryField}
+                  </label>
+                  {multiLineScoTypes.includes(currentScoType) ? (
+                    <textarea
+                      value={currentValues}
+                      onChange={(e) => setCurrentValues(e.target.value)}
+                      className="w-full p-2 border rounded h-32"
+                      placeholder={`Enter ${scoConfig[currentScoType].primaryField}, one per line`}
+                    />
+                  ) : (
+                    <input
+                      type={currentScoType === 'process' ? 'number' : 'text'}
+                      value={currentValues}
+                      onChange={(e) => setCurrentValues(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      placeholder={`Enter ${scoConfig[currentScoType].primaryField}`}
+                    />
+                  )}
+                </div>
+              )}
+
+              {currentScoType === 'x509-certificate' && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium mb-2">Add Hashes</h3>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={currentHashValue}
+                      onChange={(e) => setCurrentHashValue(e.target.value)}
+                      className="w-2/3 p-2 border rounded"
+                      placeholder="Enter hash"
+                    />
+                    <select
+                      value={currentHashType}
+                      onChange={(e) => setCurrentHashType(e.target.value)}
+                      className="w-1/3 p-2 border rounded"
+                    >
+                      {hashTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    onClick={addHash}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                    disabled={!currentHashValue.trim()}
+                  >
+                    Add Hash
+                  </button>
+                  {currentHashes.length > 0 && (
+                    <div className="mt-2">
+                      <h4 className="text-sm font-medium">Added Hashes</h4>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {currentHashes.map((hash, index) => (
+                          <div
+                            key={index}
+                            className="bg-gray-200 px-3 py-1 rounded-full flex items-center"
+                          >
+                            <span>{hash.type}: {hash.value.substring(0, 8)}...</span>
+                            <button
+                              onClick={() => removeHash(index)}
+                              className="ml-2 text-red-500 hover:text-red-700"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {currentScoType && scoConfig[currentScoType].additionalFields.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium mb-2">Additional Fields</h3>
+                  {scoConfig[currentScoType].additionalFields.map(field => (
+                    <div key={field.name} className="mb-2">
+                      <label className="block text-sm font-medium mb-1">{field.label}</label>
+                      {field.type === 'textarea' ? (
+                        <input
+                          type="text"
+                          value={additionalFields[field.name] || ''}
+                          onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
+                          className="w-full p-2 border rounded"
+                          placeholder={`Enter ${field.label}`}
+                        />
+                      ) : field.type === 'checkbox' ? (
+                        <input
+                          type="checkbox"
+                          checked={additionalFields[field.name] === true || additionalFields[field.name] === 'true'}
+                          onChange={(e) => handleAdditionalFieldChange(field.name, e.target.checked)}
+                          className="p-2 border rounded"
+                        />
+                      ) : (
+                        <input
+                          type={field.type}
+                          value={additionalFields[field.name] || ''}
+                          onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
+                          className="w-full p-2 border rounded"
+                          placeholder={`Enter ${field.label}`}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={saveSco}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                  disabled={
+                    !currentScoType ||
+                    (currentScoType === 'x509-certificate' ? currentHashes.length === 0 : !currentValues.trim())
+                  }
+                >
+                  {editingIndex !== null ? 'Update SCO' : 'Add SCO'}
+                </button>
+                {editingIndex !== null && (
+                  <button
+                    onClick={cancelEdit}
+                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+
+              {scoData.length > 0 && (
+                <div className="mt-4">
+                  <h2 className="text-lg font-semibold">Added SCOs</h2>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {Object.entries(scoCounts).map(([type, { count, indices }]) => (
                       <div
-                        key={index}
-                        className="bg-gray-200 px-3 py-1 rounded-full flex items-center"
+                        key={type}
+                        className="bg-gray-200 px-3 py-1 rounded-full flex items-center cursor-pointer"
+                        onClick={() => editSco(indices[indices.length - 1])}
                       >
-                        <span>{hash.type}: {hash.value.substring(0, 8)}...</span>
+                        <span>
+                          {type} ({count})
+                        </span>
                         <button
-                          onClick={() => removeHash(index)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeSco(indices[indices.length - 1]);
+                          }}
                           className="ml-2 text-red-500 hover:text-red-700"
                         >
                           ×
@@ -571,167 +1114,457 @@
                   </div>
                 </div>
               )}
-            </div>
-          )}
 
-          {currentScoType && scoConfig[currentScoType].additionalFields.length > 0 && (
-            <div className="mb-4">
-              <h3 className="text-sm font-medium mb-2">Additional Fields</h3>
-              {scoConfig[currentScoType].additionalFields.map(field => (
-                <div key={field.name} className="mb-2">
-                  <label className="block text-sm font-medium mb-1">{field.label}</label>
-                  {field.type === 'textarea' ? (
-                    <input
-                      type="text"
-                      value={additionalFields[field.name] || ''}
-                      onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
-                      className="w-full p-2 border rounded"
-                      placeholder={`Enter ${field.label}`}
-                    />
-                  ) : field.type === 'checkbox' ? (
-                    <input
-                      type="checkbox"
-                      checked={additionalFields[field.name] === true || additionalFields[field.name] === 'true'}
-                      onChange={(e) => handleAdditionalFieldChange(field.name, e.target.checked)}
-                      className="p-2 border rounded"
-                    />
-                  ) : (
-                    <input
-                      type={field.type}
-                      value={additionalFields[field.name] || ''}
-                      onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
-                      className="w-full p-2 border rounded"
-                      placeholder={`Enter ${field.label}`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+              {scoData.length > 0 && (
+                <button
+                  onClick={generateBundle}
+                  className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  Generate STIX Bundle
+                </button>
+              )}
 
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={saveSco}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-              disabled={
-                !currentScoType ||
-                (currentScoType === 'x509-certificate' ? currentHashes.length === 0 : !currentValues.trim())
-              }
-            >
-              {editingIndex !== null ? 'Update SCO' : 'Add SCO'}
-            </button>
-            {editingIndex !== null && (
-              <button
-                onClick={cancelEdit}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-
-          {scoData.length > 0 && (
-            <div className="mt-4">
-              <h2 className="text-lg font-semibold">Added SCOs</h2>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {Object.entries(scoCounts).map(([type, { count, indices }]) => (
-                  <div
-                    key={type}
-                    className="bg-gray-200 px-3 py-1 rounded-full flex items-center cursor-pointer"
-                    onClick={() => editSco(indices[indices.length - 1])}
-                  >
-                    <span>
-                      {type} ({count})
-                    </span>
+              {stixBundle && (
+                <div className="mt-4">
+                  <h2 className="text-lg font-semibold">STIX Bundle</h2>
+                  <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-96">
+                    {JSON.stringify(stixBundle, null, 2)}
+                  </pre>
+                  <div className="flex gap-2 mt-2">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeSco(indices[indices.length - 1]);
-                      }}
-                      className="ml-2 text-red-500 hover:text-red-700"
+                      onClick={downloadBundle}
+                      className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                      aria-label="Download STIX bundle as JSON"
                     >
-                      ×
+                      Download JSON
+                    </button>
+                    <button
+                      onClick={copyToClipboard}
+                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      aria-label={copied ? "JSON copied to clipboard" : "Copy STIX bundle JSON to clipboard"}
+                    >
+                      {copied ? 'Copied!' : 'Copy to Clipboard'}
+                    </button>
+                    {scoData.length > 0 && (
+                      <button
+                        onClick={clearAllScos}
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        aria-label="Clear all SCOs"
+                      >
+                        Clear All SCOs
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {importError && (
+                <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
+                  {importError}
+                </div>
+              )}
+
+              <button
+                onClick={openScoModal}
+                className="mt-4 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                aria-label="Import"
+              >
+                Import
+              </button>
+            </div>
+          )}
+
+          {/* Relationship Builder Tab */}
+          {activeTab === 'relationship' && (
+            <div>
+              <h2 className="text-lg font-semibold mb-4">Relationship Builder</h2>
+
+              {/* Create Object Form */}
+              <div className="mb-8">
+                <h3 className="text-sm font-medium mb-2">Create Object</h3>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1" htmlFor="object-type">Select Object Type</label>
+                  <select
+                    id="object-type"
+                    value={relationshipObjectType}
+                    onChange={(e) => {
+                      setRelationshipObjectType(e.target.value);
+                      setRelationshipValues('');
+                      setRelationshipHashes([]);
+                      setRelationshipAdditionalFields({});
+                      setObjectName('');
+                      setObjectNameError(null);
+                    }}
+                    className="w-full p-2 border rounded"
+                    aria-label="Select Object Type"
+                  >
+                    <option value="" disabled selected hidden>Select Object Type</option>
+                    <optgroup label="SCO Types">
+                      {scoTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="SDO Types">
+                      {sdoTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+
+                {relationshipObjectType && (
+                  <div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">Object Name</label>
+                      <input
+                        type="text"
+                        value={objectName}
+                        onChange={(e) => {
+                          setObjectName(e.target.value);
+                          setObjectNameError(null);
+                        }}
+                        className="w-full p-2 border rounded"
+                        placeholder="Enter a name for this object"
+                      />
+                      {objectNameError && (
+                        <div className="mt-2 p-2 bg-red-100 text-red-700 rounded">
+                          {objectNameError}
+                        </div>
+                      )}
+                    </div>
+
+                    {relationshipObjectType === 'x509-certificate' ? (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium mb-2">Add Hashes</h4>
+                        <div className="flex gap-2 mb-2">
+                          <input
+                            type="text"
+                            value={relationshipHashValue}
+                            onChange={(e) => setRelationshipHashValue(e.target.value)}
+                            className="w-2/3 p-2 border rounded"
+                            placeholder="Enter hash"
+                          />
+                          <select
+                            value={relationshipHashType}
+                            onChange={(e) => setRelationshipHashType(e.target.value)}
+                            className="w-1/3 p-2 border rounded"
+                          >
+                            {hashTypes.map(type => (
+                              <option key={type} value={type}>{type}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          onClick={addRelationshipHash}
+                          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                          disabled={!relationshipHashValue.trim()}
+                        >
+                          Add Hash
+                        </button>
+                        {relationshipHashes.length > 0 && (
+                          <div className="mt-2">
+                            <h4 className="text-sm font-medium">Added Hashes</h4>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {relationshipHashes.map((hash, index) => (
+                                <div
+                                  key={index}
+                                  className="bg-gray-200 px-3 py-1 rounded-full flex items-center"
+                                >
+                                  <span>{hash.type}: {hash.value.substring(0, 8)}...</span>
+                                  <button
+                                    onClick={() => removeRelationshipHash(index)}
+                                    className="ml-2 text-red-500 hover:text-red-700"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
+                          Enter {(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).primaryField}
+                        </label>
+                        {multiLineScoTypes.includes(relationshipObjectType) ? (
+                          <textarea
+                            value={relationshipValues}
+                            onChange={(e) => setRelationshipValues(e.target.value)}
+                            className="w-full p-2 border rounded h-32"
+                            placeholder={`Enter ${(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).primaryField}, one per line`}
+                          />
+                        ) : (
+                          <input
+                            type={relationshipObjectType === 'process' ? 'number' : 'text'}
+                            value={relationshipValues}
+                            onChange={(e) => setRelationshipValues(e.target.value)}
+                            className="w-full p-2 border rounded"
+                            placeholder={`Enter ${(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).primaryField}`}
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType])?.additionalFields?.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium mb-2">Additional Fields</h4>
+                        {(scoConfig[relationshipObjectType] || sdoConfig[relationshipObjectType]).additionalFields.map(field => (
+                          <div key={field.name} className="mb-2">
+                            <label className="block text-sm font-medium mb-1">{field.label}</label>
+                            {field.type === 'textarea' ? (
+                              <input
+                                type="text"
+                                value={relationshipAdditionalFields[field.name] || ''}
+                                onChange={(e) => handleRelationshipAdditionalFieldChange(field.name, e.target.value)}
+                                className="w-full p-2 border rounded"
+                                placeholder={`Enter ${field.label}`}
+                              />
+                            ) : field.type === 'checkbox' ? (
+                              <input
+                                type="checkbox"
+                                checked={relationshipAdditionalFields[field.name] === true || relationshipAdditionalFields[field.name] === 'true'}
+                                onChange={(e) => handleRelationshipAdditionalFieldChange(field.name, e.target.checked)}
+                                className="p-2 border rounded"
+                              />
+                            ) : (
+                              <input
+                                type={field.type}
+                                value={relationshipAdditionalFields[field.name] || ''}
+                                onChange={(e) => handleRelationshipAdditionalFieldChange(field.name, e.target.value)}
+                                className="w-full p-2 border rounded"
+                                placeholder={`Enter ${field.label}`}
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={saveRelationshipObject}
+                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                      disabled={
+                        !objectName.trim() ||
+                        (relationshipObjectType === 'x509-certificate' ? relationshipHashes.length === 0 : !relationshipValues.trim())
+                      }
+                    >
+                      Create Object
                     </button>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          )}
 
-          {scoData.length > 0 && (
-            <button
-              onClick={generateBundle}
-              className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
-              Generate STIX Bundle
-            </button>
-          )}
-
-          {stixBundle && (
-            <div className="mt-4">
-              <h2 className="text-lg font-semibold">STIX Bundle</h2>
-              <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-96">
-                {JSON.stringify(stixBundle, null, 2)}
-              </pre>
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={downloadBundle}
-                  className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  aria-label="Download STIX bundle as JSON"
-                >
-                  Download JSON
-                </button>
-                <button
-                  onClick={copyToClipboard}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  aria-label={copied ? "JSON copied to clipboard" : "Copy STIX bundle JSON to clipboard"}
-                >
-                  {copied ? 'Copied!' : 'Copy to Clipboard'}
-                </button>
-                {scoData.length > 0 && (
-                  <button
-                    onClick={clearAllScos}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                    aria-label="Clear all SCOs"
+              {/* Created Objects Dropdown */}
+              {createdObjects.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-sm font-medium mb-2">Created Objects</h3>
+                  <select
+                    className="w-full p-2 border rounded"
+                    aria-label="Select Created Object"
+                    defaultValue=""
                   >
-                    Clear All SCOs
+                    <option value="" disabled>Select Created Object</option>
+                    {createdObjects.map((obj, index) => (
+                      <option key={index} value={index}>{`${obj.name} (${obj.type})`}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Create Relationship Form */}
+              {createdObjects.length >= 2 && (
+                <div className="mb-8">
+                  <h3 className="text-sm font-medium mb-2">Create Relationship</h3>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1" htmlFor="source-object">Source Object</label>
+                    <select
+                      id="source-object"
+                      value={sourceObjectIndex}
+                      onChange={(e) => setSourceObjectIndex(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      aria-label="Select Source Object"
+                    >
+                      <option value="" disabled selected>Select Source Object</option>
+                      {createdObjects.map((obj, index) => (
+                        <option key={index} value={index}>{`${obj.name} (${obj.type})`}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1" htmlFor="target-object">Target Object</label>
+                    <select
+                      id="target-object"
+                      value={targetObjectIndex}
+                      onChange={(e) => setTargetObjectIndex(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      aria-label="Select Target Object"
+                    >
+                      <option value="" disabled selected>Select Target Object</option>
+                      {createdObjects.map((obj, index) => (
+                        <option key={index} value={index}>{`${obj.name} (${obj.type})`}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1" htmlFor="relationship-type">Relationship Type</label>
+                    <select
+                      id="relationship-type"
+                      value={relationshipType}
+                      onChange={(e) => setRelationshipType(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      aria-label="Select Relationship Type"
+                    >
+                      <option value="" disabled selected>Select Relationship Type</option>
+                      {relationshipTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    onClick={saveRelationship}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                    disabled={sourceObjectIndex === '' || targetObjectIndex === '' || !relationshipType || sourceObjectIndex === targetObjectIndex}
+                  >
+                    Create Relationship
+                  </button>
+                </div>
+              )}
+
+              {/* Created Relationships List */}
+              {relationships.length > 0 && (
+                <div className="mt-4 mb-8">
+                  <h3 className="text-sm font-medium mb-2">Created Relationships</h3>
+                  <ul className="list-disc pl-5">
+                    {relationships.map((rel, index) => (
+                      <li key={index} className="text-sm flex items-center">
+                        <span>{`${rel.source_name} -> ${rel.relationship_type} -> ${rel.target_name}`}</span>
+                        <button
+                          onClick={() => removeRelationship(index)}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          ×
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Import and Generate Bundle Buttons */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={openRelationshipModal}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                  aria-label="Import"
+                >
+                  Import
+                </button>
+                {(createdObjects.length > 0 || relationships.length > 0) && (
+                  <button
+                    onClick={generateRelationshipBundle}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                  >
+                    Generate STIX Bundle
                   </button>
                 )}
               </div>
+
+              {/* Relationship Bundle Display */}
+              {relationshipBundle && (
+                <div className="mt-4">
+                  <h2 className="text-lg font-semibold">STIX Bundle</h2>
+                  <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-96">
+                    {JSON.stringify(relationshipBundle, null, 2)}
+                  </pre>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={downloadRelationshipBundle}
+                      className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                      aria-label="Download STIX bundle as JSON"
+                    >
+                      Download JSON
+                    </button>
+                    <button
+                      onClick={copyRelationshipToClipboard}
+                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      aria-label={relationshipCopied ? "JSON copied to clipboard" : "Copy STIX bundle JSON to clipboard"}
+                    >
+                      {relationshipCopied ? 'Copied!' : 'Copy to Clipboard'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Relationship Import Modal */}
+              {showRelationshipImportModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div
+                    ref={relationshipModalRef}
+                    className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"
+                    role="dialog"
+                    aria-labelledby="relationship-modal-title"
+                  >
+                    <h2 id="relationship-modal-title" className="text-lg font-semibold mb-4">Import STIX Bundle</h2>
+                    <textarea
+                      ref={relationshipTextareaRef}
+                      value={relationshipImportJson}
+                      onChange={(e) => setRelationshipImportJson(e.target.value)}
+                      className="w-full p-2 border rounded h-48 mb-4"
+                      placeholder="Paste STIX bundle JSON here"
+                      aria-label="STIX bundle JSON"
+                    />
+                    {relationshipImportError && (
+                      <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+                        {relationshipImportError}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleRelationshipBundleImport}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        aria-label="Submit STIX bundle"
+                      >
+                        Submit
+                      </button>
+                      <button
+                        onClick={closeRelationshipModal}
+                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                        aria-label="Cancel import"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {importError && (
-            <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
-              {importError}
-            </div>
-          )}
-
-          <button
-            onClick={openModal}
-            className="mt-4 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-            aria-label="Import"
-          >
-            Import
-          </button>
-
-          {showModal && (
+          {/* SCO Import Modal */}
+          {showScoImportModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div
-                ref={modalRef}
+                ref={scoModalRef}
                 className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"
                 role="dialog"
-                aria-labelledby="modal-title"
+                aria-labelledby="sco-modal-title"
               >
-                <h2 id="modal-title" className="text-lg font-semibold mb-4">Import STIX Bundle</h2>
+                <h2 id="sco-modal-title" className="text-lg font-semibold mb-4">Import STIX Bundle</h2>
                 <textarea
-                  ref={textareaRef}
+                  ref={scoTextareaRef}
                   value={importJson}
                   onChange={(e) => setImportJson(e.target.value)}
                   className="w-full p-2 border rounded h-48 mb-4"
                   placeholder="Paste STIX bundle JSON here"
                   aria-label="STIX bundle JSON"
                 />
+                {importError && (
+                  <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+                    {importError}
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <button
                     onClick={handleBundleImport}
@@ -741,7 +1574,7 @@
                     Submit
                   </button>
                   <button
-                    onClick={closeModal}
+                    onClick={closeScoModal}
                     className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                     aria-label="Cancel import"
                   >
