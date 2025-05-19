@@ -1,128 +1,75 @@
-# STIX Bundle Generator Changelog
+# Changelog for STIX Bundle Generator (index.html)
 
-This changelog documents the evolution of the STIX Bundle Generator (`artifact_id="f8b52830-61e7-4dcd-b9f3-809e7d8ff123"`), detailing key changes, features, and fixes across all versions.
+All notable changes to the `index.html` artifact (`artifact_id="f8b52830-61e7-4dcd-b9f3-809e7d8ff123"`) are documented in this file. Versions are listed in descending order, with the latest version at the top.
 
-## Version 4f9cd0c4-4a7d-483f-add3-0d00081c442f
-*Date: May 14, 2025 (approx. 6:00 PM CEST)*
+## [Stable] Version 92386760-6add-4294-bbdf-4b3b40b4fe62 - 2025-05-19 20:25 CEST
+- **Fixed**: Corrected syntax error in `generateBundle` function, changing `if (key.includes('.' yok))` to `if (key.includes('.'))`, resolving the "Script error." runtime issue.
+- **Meta**: Updated `<meta name="xaiArtifact_version">` to `e6f4c2b3-9d5e-4c3a-8f1d-9a8b7c6d5e0f`.
+- **Notes**: Marked as stable. Preserved all functionality, including `goals` for `threat-actor`, relationship constraints, and SCO nesting.
 
-- **Initial Release**:
-  - Introduced two tabs: SCO Builder and Relationship Builder.
-  - **SCO Builder**:
-    - Supports 20 SCO types (e.g., `ipv4-addr`, `x509-certificate`, `user-account`).
-    - Multiline `textarea` for types like `ipv4-addr`, single-line `input` for others.
-    - Features aggregated SCO counts, modal import, buttons (Generate, Download, Copy, Clear).
-    - Includes `x509-certificate` hash system, `network-traffic` `protocols`, and fields like `rir`.
-  - **Relationship Builder**:
-    - Object creation form with single-line `input` fields.
-    - Unique `Object Name` checks (case-insensitive).
-    - Supports object/relationship creation/removal, bundle generation, and import modal.
-    - Placeholders include “(comma-separated)” for some fields.
-  - Added footer: “Created by Grok, narrated by gbyx3”.
-- **Limitations**:
-  - Separate bundles for SCO Builder and Relationship Builder.
-  - Unresolved reference IDs in relationships.
-  - Potential runtime errors in `openModal`, `downloadBundle`.
+## Version 7bda4770-1c15-4f92-9978-155f7e71fa11 - 2025-05-19 20:21 CEST
+- **Added**: `goals` property to `threat-actor` SDO, with a text input for comma-separated values (e.g., `Financial Gain, Espionage`) in `sdoConfig`.
+- **Updated**: `generateBundle` to process `goals` as a list of strings for `threat-actor`.
+- **Updated**: `handleBundleImport` to join `goals` as a comma-separated string for `threat-actor` imports.
+- **Meta**: Updated `<meta name="xaiArtifact_version">` to `d5e3b1a2-8c4f-4d3b-9e2c-7f8a6b5c4d0e`.
+- **Notes**: Ensured STIX 2.1 compliance for `goals` and preserved relationship constraints and SCO nesting.
 
-## Version bb3cfebf-67f2-4465-b9a4-670ecdbeeb6b
-*Date: May 14, 2025 (approx. 8:35 PM CEST)*
+## Version 1301525f-336a-47eb-81a0-9f95f3a4756c - 2025-05-19 20:11 CEST
+- **Added**: Relationship constraints based on provided JSON, restricting source SDOs (`indicator`, `malware`, etc.), target SDOs, and relationship types (`attributed-to`, `indicates`, `related-to`).
+- **Updated**: Source Object `<select>` to show only eight allowed SDOs.
+- **Updated**: Target Object `<select>` to filter based on source’s `allowed_targets`.
+- **Updated**: Relationship Type `<select>` to filter based on source and target constraints.
+- **Updated**: `saveRelationship` to validate relationships, showing alerts for invalid combinations.
+- **Meta**: Updated `<meta name="xaiArtifact_version">` to `c4f9b2a1-7d3e-4b2a-9c1d-8e7f6a5b3c4f`.
+- **Notes**: Enhanced UI to disable invalid selections and preserved SCO nesting and import validation.
 
-- **Renamed Relationship Builder**:
-  - Changed “Relationship Builder” tab to “Builder” in UI (label and heading).
-  - Set Builder as the default tab (`activeTab` initialized to `'relationship'`).
-- **Preserved SCO Builder**:
-  - Kept SCO Builder as a secondary tab with no changes.
-- **Features Retained**:
-  - All SCO Builder and Builder functionality from previous version.
-  - Maintained single-line `input` fields in Builder, unique name checks, and bundle generation.
-- **Limitations**:
-  - Same as previous version.
+## Version da3a23b9-119b-460a-acc5-40ef8fd13739 - 2025-05-19 19:49 CEST
+- **Fixed**: Enabled `observed-data` selection in relationship dropdowns by creating `observed-data` SDOs for SCOs in `saveObject`.
+- **Updated**: `saveObject` to store `observed-data` wrappers in `createdObjects` with nested SCOs.
+- **Updated**: `generateBundle` to use `observed-data` SDOs from `createdObjects`.
+- **Updated**: Relationship `<select>` to include `observed-data` (removed exclusion filter).
+- **Meta**: Updated `<meta name="xaiArtifact_version">` to `b4e2c1f7-9a3d-4e8b-a2c9-fd7a6e5b3c4f`.
+- **Notes**: Supported relationships like `indicator` → `indicates` → `observed-data` and maintained STIX 2.1 compliance.
 
-## Version 38d9d06b-3087-492d-887f-b8e14c7aca1f
-*Date: May 14, 2025 (approx. 8:40 PM CEST)*
+## Version da7f8258-086e-45fe-9d8a-e581563447a0 - 2025-05-16 15:22 CEST
+- **Fixed**: Removed `observed-data` from relationship dropdowns (Source/Target Object `<select>`) to prevent its use as a relationship object, as it was incorrectly included.
+- **Meta**: Updated `<meta name="xaiArtifact_version">` to `7a9c3b2e-8f4d-4c2a-b3e1-5f6e7d8f9a0b`.
+- **Notes**: Assumed `observed-data` was only a SCO container, later corrected to allow relationships. Preserved SCO nesting and other functionality.
 
-- **Reordered Tabs**:
-  - Moved Builder tab to the left of SCO Builder in UI for better prominence.
-- **Fixed Footer Typo**:
-  - Corrected footer from “Created plastered by Grok” to “Created by Grok, narrated by gbyx3”.
-- **Features Retained**:
-  - Preserved Builder as default tab and all functionality from previous version.
-- **Limitations**:
-  - Same as previous version.
+## Version d3df6462-c36e-424a-bf19-d63ccfb6634a - 2025-05-16 14:03 CEST
+- **Fixed**: Ensured `number_observed` in `observed-data` is an integer ≥ 1 (default `1`), preventing `null` values.
+- **Fixed**: Removed `id` and `spec_version` from SCOs nested in `observed-data.objects`, per STIX 2.1 requirements.
+- **Updated**: `generateBundle` to enforce these constraints.
+- **Updated**: `handleBundleImport` to validate `number_observed` and SCO properties during import.
+- **Meta**: Updated `<meta name="xaiArtifact_version">` to `9e6a7b8c-2d3e-4f1a-9c2b-3f4e5d6f7890`.
+- **Notes**: Strengthened STIX 2.1 compliance for SCO nesting and `observed-data` properties.
 
-## Version 7bd889ad-929c-4416-9fff-98cbb5f09677
-*Date: May 14, 2025 (approx. 8:48 PM CEST)*
+## Version e03a3cd9-5948-444a-aac3-fe2ae2e6be07 - 2025-05-16 14:03 CEST
+- **Added**: SCO nesting in `observed-data` SDOs, ensuring no top-level SCOs in the bundle.
+- **Added**: Auto-wrapping of SCOs in `observed-data` with `first_observed`, `last_observed`, and `number_observed`.
+- **Added**: SCO-to-SCO relationships via references (e.g., `contains_ref`, `creator_user_ref`) in SCO properties.
+- **Updated**: `generateBundle` to wrap SCOs in `observed-data` and restrict top-level objects to SDOs and relationships.
+- **Updated**: `saveRelationship` to allow only SDO-to-SDO relationships, using references for SCOs.
+- **Updated**: `handleBundleImport` to reject bundles with top-level SCOs.
+- **Updated**: UI with a note indicating SCOs are wrapped in `observed-data`.
+- **Meta**: Updated `<meta name="xaiArtifact_version">` to `9e6a7b8c-2d3e-4f1a-9c2b-3f4e5d6f7890`.
+- **Notes**: Consolidated to a single Builder interface, removed SCO Builder tab, and preserved `optgroup` labels.
 
-- **Renamed Object Name**:
-  - Changed “Object Name” to “Friendly Name” in Builder’s object creation form (label, placeholder, error message).
-  - Updated placeholder to “Enter a friendly name for this object”.
-  - Modified error message to “Object with this friendly name already exists.”.
-- **Preserved Logic**:
-  - Kept `objectName` state and unique name check logic unchanged.
-- **Features Retained**:
-  - All functionality from previous version, including tab order (Builder left, SCO Builder right).
-- **Limitations**:
-  - Same as previous version.
+## Version 380d42b4-f491-4f8b-b825-df384aafdc08 - 2025-05-16 (Time not specified)
+- **Initial Version**: Implemented the STIX Bundle Generator as a single-page React application.
+- **Features**:
+  - Supported creation of 20 SCO types and 18 SDO types with dynamic input fields.
+  - Included `optgroup` labels ("Cyber Object Types", "Domain Object Types") in object type `<select>`.
+  - Enabled SDO-to-SDO relationship creation with basic validation.
+  - Supported bundle generation, download, and import with a modal interface.
+  - Used Tailwind CSS for styling and Babel for JSX transpilation.
+- **Meta**: `<meta name="xaiArtifact_version">` set to `380d42b4-f491-4f8b-b825-df384aafdc08`.
+- **Notes**: Initial implementation lacked SCO nesting constraints and advanced relationship validation. Specific timestamp not provided in history.
 
-## Version db2f2b01-7c61-4c70-9966-6701f94abcf3
-*Date: May 14, 2025 (approx. 9:00 PM CEST)*
+---
 
-- **Updated SDO Schema**:
-  - Replaced `sdoConfig` with a new schema supporting 18 SDO types (`attack-pattern`, `campaign`, `course-of-action`, `grouping`, `identity`, `indicator`, `infrastructure`, `intrusion-set`, `location`, `malware`, `malware-analysis`, `note`, `observed-data`, `opinion`, `report`, `threat-actor`, `tool`, `vulnerability`).
-  - Added fields like `aliases`, `kill_chain_phases`, `first_seen`, `latitude`, etc., with appropriate input types (e.g., `text`, `datetime-local`, `number`, `select`).
-  - Omitted `external_references` and `object_marking_refs` from form inputs due to external context requirements.
-- **Enhanced Form**:
-  - Updated Builder’s object creation form to dynamically render new SDO fields.
-  - Handled array inputs (e.g., `aliases`) as comma-separated strings and JSON inputs (e.g., `kill_chain_phases`).
-- **Updated Bundle Generation**:
-  - Modified `generateRelationshipBundle` to include new SDO fields, parsing arrays and JSON correctly.
-- **Features Retained**:
-  - Preserved SCO Builder and existing Builder functionality, including `Friendly Name` and tab order.
-- **Limitations**:
-  - Same as previous version, with potential for invalid `source_ref`/`target_ref` in relationships.
-
-## Version 03946ddc-85f3-4a45-9a87-892cba799071
-*Date: May 14, 2025 (approx. 9:15 PM CEST)*
-
-- **Fixed Relationship References**:
-  - Corrected `source_ref` and `target_ref` in relationships to use existing object IDs from `createdObjects` instead of generating new IDs.
-  - Updated `saveRelationshipObject` to create separate objects for each value of multi-value SCOs (e.g., `ipv4-addr` with `192.0.2.1,192.0.2.2` creates multiple objects with unique IDs).
-  - Modified `generateRelationshipBundle` to use stored `id` fields, ensuring relationships reference correct objects.
-- **Features Retained**:
-  - All functionality from previous version, including updated SDO schema and UI features.
-- **Limitations**:
-  - Same as previous version, with a noted syntax error introduced in `generateRelationshipBundle`.
-
-## Version c4739258-1348-4b12-89c6-c3dd980a8d41 (Stable)
-*Date: May 14, 2025, 9:21 PM CEST*
-
-- **Fixed Syntax Error**:
-  - Corrected invalid syntax in `generateRelationshipBundle`:
-    ```javascript
-    // From: created: new Date().toISOString: new Date().toISOString()
-    // To: created: new Date().toISOString()
-    ```
-    Resolved `Script error.` caused by malformed property definition.
-- **Added Validation**:
-  - Added check in `generateRelationshipBundle` to skip objects with invalid `values`:
-    ```javascript
-    if (!obj.values || obj.values.length === 0) return;
-    ```
-    Prevents runtime errors for undefined or empty `values`.
-- **Features Retained**:
-  - Preserved all functionality from previous version, including fixed relationship references, updated SDO schema, and multi-value SCO handling.
-- **Stability**:
-  - Marked as stable after resolving syntax error and validating core functionality.
-- **Limitations**:
-  - Separate bundles for SCO Builder and Builder.
-  - Potential runtime errors in `openModal`, `downloadBundle` (unrelated to this fix).
-
-## Notes
-- **Breaking Changes**:
-  - Version `db2f2b01-7c61-4c70-9966-6701f94abcf3` introduced a new SDO schema, potentially breaking existing SDO-based workflows due to new fields and types.
-- **Known Issues**:
-  - Relationships may still require validation to ensure `source_ref` and `target_ref` align with bundle objects in edge cases.
-  - Import functionality may need refinement for handling complex SDO fields.
-- **Future Improvements**:
-  - Consider merging SCO Builder and Builder bundles.
-  - Add edit functionality for objects in Builder.
-  - Address remaining runtime errors in `openModal`, `downloadBundle`.
+**Notes**:
+- All versions maintain STIX 2.1 compliance, with progressive enhancements to enforce SCO nesting, relationship constraints, and property validation.
+- Timestamps are based on the provided conversation history, with the earliest version lacking a specific time.
+- The changelog assumes all listed `artifact_version_id` values from the history are included; if earlier versions exist, they were not provided.
+- For further details on any version, refer to the corresponding `index.html` artifact.
