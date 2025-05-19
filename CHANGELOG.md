@@ -2,6 +2,14 @@
 
 All notable changes to the `index.html` artifact (`artifact_id="f8b52830-61e7-4dcd-b9f3-809e7d8ff123"`) are documented in this file. Versions are listed in descending order, with the latest version at the top.
 
+## Version 8b9f7a2c-5e3d-4f1a-9c2b-3f4e5d6f7890 - 2025-05-19 20:53 CEST
+- **Added**: New attributes to `x509-certificate` SCO: `issuer`, `subject`, `serial_number`, `validity_not_before`, and `validity_not_after`, with text input fields in `scoConfig`.
+- **Added**: `SHA-256` to `hashTypes` array, available for `x509-certificate` and `file` hash inputs.
+- **Updated**: `generateBundle` to include new `x509-certificate` attributes in the SCO object within `observed-data.objects`.
+- **Updated**: `handleBundleImport` to process new `x509-certificate` attributes as strings.
+- **Meta**: Updated `<meta name="xaiArtifact_version">` to `f7e5c3b4-0a6f-4d2b-8e1c-9b7a6d5e4f0a`.
+- **Notes**: Preserved `goals` for `threat-actor`, relationship constraints, SCO nesting, and all other functionality.
+
 ## [Stable] Version 92386760-6add-4294-bbdf-4b3b40b4fe62 - 2025-05-19 20:25 CEST
 - **Fixed**: Corrected syntax error in `generateBundle` function, changing `if (key.includes('.' yok))` to `if (key.includes('.'))`, resolving the "Script error." runtime issue.
 - **Meta**: Updated `<meta name="xaiArtifact_version">` to `e6f4c2b3-9d5e-4c3a-8f1d-9a8b7c6d5e0f`.
