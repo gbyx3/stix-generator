@@ -1,1343 +1,864 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="xaiArtifact_version" content="f7e5c3b4-0a6f-4d2b-8e1c-9b7a6d5e4f0a">
-  <title>STIX Bundle Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STIX Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .objects-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f7fafc;
+        }
+
+        .object-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .object-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .object-info {
+            flex: 1;
+        }
+
+        .object-type {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .object-name {
+            color: #4a5568;
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .object-id {
+            color: #a0aec0;
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .output-section {
+            margin-top: 20px;
+        }
+
+        .json-output {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .status-warning {
+            background: #fefcbf;
+            color: #744210;
+            border: 1px solid #f6e05e;
+        }
+
+        .validation-results {
+            margin-top: 15px;
+        }
+
+        .validation-item {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .validation-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .validation-warning {
+            background: #fefcbf;
+            color: #744210;
+            border-left: 4px solid #f6e05e;
+        }
+
+        .bundles-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .bundle-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bundle-item:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .bundle-name {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .bundle-info {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useRef, useEffect } = React;
-
-    const scoTypes = [
-      'artifact', 'autonomous-system', 'directory', 'domain-name', 'email-addr', 'email-message',
-      'file', 'ipv4-addr', 'ipv6-addr', 'mac-addr', 'mutex', 'network-traffic', 'process',
-      'software', 'url', 'user-account', 'windows-registry-key', 'x509-certificate',
-      'crypto-currency-wallet', 'crypto-currency-transaction'
-    ];
-
-    const sdoTypes = [
-      'attack-pattern', 'campaign', 'course-of-action', 'grouping', 'identity', 'indicator',
-      'infrastructure', 'intrusion-set', 'location', 'malware', 'malware-analysis', 'note',
-      'observed-data', 'opinion', 'report', 'threat-actor', 'tool', 'vulnerability'
-    ];
-
-    const relationshipConstraints = {
-      "version": "2.1",
-      "relationships": {
-        "indicator": {
-          "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "malware", "tool", "threat-actor"],
-          "relationship_types": ["indicates", "related-to"]
-        },
-        "malware": {
-          "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "tool", "threat-actor"],
-          "relationship_types": ["related-to"]
-        },
-        "observed-data": {
-          "allowed_targets": ["indicator", "malware", "tool", "threat-actor"],
-          "relationship_types": ["related-to"]
-        },
-        "threat-actor": {
-          "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "tool", "observed-data"],
-          "relationship_types": ["attributed-to", "related-to"]
-        },
-        "attack-pattern": {
-          "allowed_targets": ["campaign", "intrusion-set", "indicator", "malware", "tool", "threat-actor"],
-          "relationship_types": ["related-to"]
-        },
-        "campaign": {
-          "allowed_targets": ["attack-pattern", "intrusion-set", "indicator", "malware", "tool", "threat-actor"],
-          "relationship_types": ["related-to"]
-        },
-        "intrusion-set": {
-          "allowed_targets": ["attack-pattern", "campaign", "indicator", "malware", "tool", "threat-actor"],
-          "relationship_types": ["related-to"]
-        },
-        "tool": {
-          "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "threat-actor", "observed-data"],
-          "relationship_types": ["related-to"]
-        }
-      },
-      "constraints": {
-        "relationship_type": {
-          "attributed-to": {
-            "source": ["attack-pattern", "campaign", "indicator", "intrusion-set", "malware", "tool", "threat-actor"],
-            "target": ["threat-actor"]
-          },
-          "indicates": {
-            "source": ["indicator"],
-            "target": ["attack-pattern", "campaign", "intrusion-set", "malware", "tool", "threat-actor"]
-          },
-          "related-to": {
-            "source": ["indicator", "malware", "observed-data", "threat-actor", "attack-pattern", "campaign", "intrusion-set", "tool"],
-            "target": ["indicator", "malware", "observed-data", "threat-actor", "attack-pattern", "campaign", "intrusion-set", "tool"]
-          }
-        }
-      }
-    };
-
-    const hashTypes = ['MD5', 'SHA-1', 'SHA-256', 'SHA-512'];
-
-    const multiLineScoTypes = ['ipv4-addr', 'ipv6-addr', 'domain-name', 'mac-addr', 'mutex', 'url'];
-
-    const scoConfig = {
-      'artifact': {
-        primaryField: 'payload_bin',
-        additionalFields: [
-          { name: 'mime_type', label: 'MIME Type', type: 'text', default: 'application/octet-stream' }
-        ]
-      },
-      'autonomous-system': {
-        primaryField: 'number',
-        additionalFields: [
-          { name: 'name', label: 'AS Name', type: 'text' },
-          { name: 'rir', label: 'RIR', type: 'text' }
-        ]
-      },
-      'directory': { 
-        primaryField: 'path', 
-        additionalFields: [
-          { name: 'contains_refs', label: 'Contains Refs (comma-separated IDs)', type: 'text' }
-        ] 
-      },
-      'domain-name': { primaryField: 'value', additionalFields: [] },
-      'email-addr': {
-        primaryField: 'value',
-        additionalFields: [{ name: 'display_name', label: 'Display Name', type: 'text' }]
-      },
-      'email-message': {
-        primaryField: 'subject',
-        additionalFields: [
-          { name: 'from_ref', label: 'From Email Address ID', type: 'text' },
-          { name: 'to_refs', label: 'To Email Address IDs (comma-separated)', type: 'text' },
-          { name: 'is_multipart', label: 'Is Multipart', type: 'checkbox' },
-          { name: 'date', label: 'Date (ISO 8601)', type: 'text' }
-        ]
-      },
-      'file': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'hashes.MD5', label: 'MD5 Hash', type: 'text' },
-          { name: 'hashes.SHA-1', label: 'SHA-1 Hash', type: 'text' },
-          { name: 'hashes.SHA-256', label: 'SHA-256 Hash', type: 'text' },
-          { name: 'parent_directory_ref', label: 'Parent Directory ID', type: 'text' }
-        ]
-      },
-      'ipv4-addr': { primaryField: 'value', additionalFields: [] },
-      'ipv6-addr': { primaryField: 'value', additionalFields: [] },
-      'mac-addr': { primaryField: 'value', additionalFields: [] },
-      'mutex': { primaryField: 'name', additionalFields: [] },
-      'network-traffic': {
-        primaryField: 'protocols',
-        additionalFields: [
-          { name: 'src_ref', label: 'Source IP ID', type: 'text' },
-          { name: 'dst_ref', label: 'Destination IP ID', type: 'text' },
-          { name: 'src_port', label: 'Source Port', type: 'number' },
-          { name: 'dst_port', label: 'Destination Port', type: 'number' },
-          { name: 'start', label: 'Start Time (ISO 8601)', type: 'text' },
-          { name: 'end', label: 'End Time (ISO 8601)', type: 'text' },
-          { name: 'is_active', label: 'Is Active', type: 'checkbox' }
-        ]
-      },
-      'process': {
-        primaryField: 'pid',
-        additionalFields: [
-          { name: 'name', label: 'Process Name', type: 'text' },
-          { name: 'command_line', label: 'Command Line', type: 'text' },
-          { name: 'creator_user_ref', label: 'Creator User Account ID', type: 'text' }
-        ]
-      },
-      'software': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'vendor', label: 'Vendor', type: 'text' },
-          { name: 'version', label: 'Version', type: 'text' },
-          { name: 'cpe', label: 'CPE', type: 'text' }
-        ]
-      },
-      'url': { primaryField: 'value', additionalFields: [] },
-      'user-account': {
-        primaryField: 'account_login',
-        additionalFields: [
-          { name: 'user_id', label: 'User ID', type: 'text' },
-          { name: 'account_type', label: 'Account Type', type: 'text' },
-          { name: 'display_name', label: 'Display Name', type: 'text' },
-          { name: 'is_service_account', label: 'Is Service Account', type: 'checkbox' },
-          { name: 'is_privileged', label: 'Is Privileged', type: 'checkbox' },
-          { name: 'can_escalate_privs', label: 'Can Escalate Privileges', type: 'checkbox' },
-          { name: 'is_disabled', label: 'Is Disabled', type: 'checkbox' }
-        ]
-      },
-      'windows-registry-key': {
-        primaryField: 'key',
-        additionalFields: [{ name: 'values', label: 'Registry Values (JSON)', type: 'text' }]
-      },
-      'x509-certificate': {
-        primaryField: 'hashes',
-        additionalFields: [
-          { name: 'issuer', label: 'Issuer', type: 'text' },
-          { name: 'subject', label: 'Subject', type: 'text' },
-          { name: 'serial_number', label: 'Serial Number', type: 'text' },
-          { name: 'validity_not_before', label: 'Validity Not Before (ISO 8601)', type: 'text' },
-          { name: 'validity_not_after', label: 'Validity Not After (ISO 8601)', type: 'text' }
-        ]
-      },
-      'crypto-currency-wallet': {
-        primaryField: 'address',
-        additionalFields: [{ name: 'currency', label: 'Currency (e.g., BTC, ETH)', type: 'text' }]
-      },
-      'crypto-currency-transaction': {
-        primaryField: 'hash',
-        additionalFields: [
-          { name: 'from_wallet_ref', label: 'From Wallet Address ID', type: 'text' },
-          { name: 'to_wallet_ref', label: 'To Wallet Address ID', type: 'text' }
-        ]
-      }
-    };
-
-    const sdoConfig = {
-      'attack-pattern': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
-          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON, e.g., [{"kill_chain_name":"lockheed-martin","phase_name":"reconnaissance"}])', type: 'text' }
-        ]
-      },
-      'campaign': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
-          { name: 'first_seen', label: 'First Seen (ISO 8601)', type: 'datetime-local' },
-          { name: 'last_seen', label: 'Last Seen (ISO 8601)', type: 'datetime-local' },
-          { name: 'objective', label: 'Objective', type: 'text' }
-        ]
-      },
-      'course-of-action': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'action_type', label: 'Action Type', type: 'text' }
-        ]
-      },
-      'grouping': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'context', label: 'Context', type: 'text' },
-          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' }
-        ]
-      },
-      'identity': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'identity_class', label: 'Identity Class', type: 'select', options: ['individual', 'group', 'organization', 'class', 'unknown'] },
-          { name: 'sectors', label: 'Sectors (comma-separated)', type: 'text' },
-          { name: 'contact_information', label: 'Contact Information', type: 'text' }
-        ]
-      },
-      'indicator': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'pattern', label: 'Pattern', type: 'text' },
-          { name: 'pattern_type', label: 'Pattern Type', type: 'text' },
-          { name: 'pattern_version', label: 'Pattern Version', type: 'text' },
-          { name: 'valid_from', label: 'Valid From (ISO 8601)', type: 'datetime-local' },
-          { name: 'valid_until', label: 'Valid Until (ISO 8601)', type: 'datetime-local' },
-          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON)', type: 'text' }
-        ]
-      },
-      'infrastructure': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'infrastructure_types', label: 'Infrastructure Types (comma-separated)', type: 'text' },
-          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
-          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON)', type: 'text' }
-        ]
-      },
-      'intrusion-set': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
-          { name: 'first_seen', label: 'First Seen (ISO 8601)', type: 'datetime-local' },
-          { name: 'last_seen', label: 'Last Seen (ISO 8601)', type: 'datetime-local' },
-          { name: 'goals', label: 'Goals (comma-separated)', type: 'text' },
-          { name: 'resource_level', label: 'Resource Level', type: 'text' },
-          { name: 'primary_motivation', label: 'Primary Motivation', type: 'text' }
-        ]
-      },
-      'location': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'latitude', label: 'Latitude', type: 'number', step: 'any' },
-          { name: 'longitude', label: 'Longitude', type: 'number', step: 'any' },
-          { name: 'region', label: 'Region', type: 'text' },
-          { name: 'country', label: 'Country', type: 'text' },
-          { name: 'administrative_area', label: 'Administrative Area', type: 'text' },
-          { name: 'city', label: 'City', type: 'text' }
-        ]
-      },
-      'malware': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'malware_types', label: 'Malware Types (comma-separated)', type: 'text' },
-          { name: 'is_family', label: 'Is Family', type: 'checkbox' },
-          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
-          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON)', type: 'text' }
-        ]
-      },
-      'malware-analysis': {
-        primaryField: 'product',
-        additionalFields: [
-          { name: 'result', label: 'Result', type: 'text' },
-          { name: 'analysis_sco_refs', label: 'Analysis SCO Refs (comma-separated)', type: 'text' },
-          { name: 'submitted', label: 'Submitted (ISO 8601)', type: 'datetime-local' },
-          { name: 'analysis_started', label: 'Analysis Started (ISO 8601)', type: 'datetime-local' },
-          { name: 'analysis_ended', label: 'Analysis Ended (ISO 8601)', type: 'datetime-local' }
-        ]
-      },
-      'note': {
-        primaryField: 'content',
-        additionalFields: [
-          { name: 'abstract', label: 'Abstract', type: 'text' },
-          { name: 'authors', label: 'Authors (comma-separated)', type: 'text' },
-          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' }
-        ]
-      },
-      'observed-data': {
-        primaryField: 'number_observed',
-        additionalFields: [
-          { name: 'first_observed', label: 'First Observed (ISO 8601)', type: 'datetime-local' },
-          { name: 'last_observed', label: 'Last Observed (ISO 8601)', type: 'datetime-local' },
-          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' }
-        ]
-      },
-      'opinion': {
-        primaryField: 'opinion',
-        additionalFields: [
-          { name: 'explanation', label: 'Explanation', type: 'text' },
-          { name: 'authors', label: 'Authors (comma-separated)', type: 'text' },
-          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' },
-          { name: 'opinion', label: 'Opinion', type: 'select', options: ['strongly-disagree', 'disagree', 'neutral', 'agree', 'strongly-agree'] }
-        ]
-      },
-      'report': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'report_types', label: 'Report Types (comma-separated)', type: 'text' },
-          { name: 'published', label: 'Published (ISO 8601)', type: 'datetime-local' },
-          { name: 'object_refs', label: 'Object Refs (comma-separated)', type: 'text' }
-        ]
-      },
-      'threat-actor': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'threat_actor_types', label: 'Threat Actor Types (comma-separated)', type: 'text' },
-          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
-          { name: 'first_seen', label: 'First Seen (ISO 8601)', type: 'datetime-local' },
-          { name: 'last_seen', label: 'Last Seen (ISO 8601)', type: 'datetime-local' },
-          { name: 'roles', label: 'Roles (comma-separated)', type: 'text' },
-          { name: 'goals', label: 'Goals (comma-separated)', type: 'text' },
-          { name: 'sophistication', label: 'Sophistication', type: 'text' },
-          { name: 'resource_level', label: 'Resource Level', type: 'text' },
-          { name: 'primary_motivation', label: 'Primary Motivation', type: 'text' }
-        ]
-      },
-      'tool': {
-        primaryField: 'name',
-        additionalFields: [
-          { name: 'description', label: 'Description', type: 'text' },
-          { name: 'tool_types', label: 'Tool Types (comma-separated)', type: 'text' },
-          { name: 'aliases', label: 'Aliases (comma-separated)', type: 'text' },
-          { name: 'kill_chain_phases', label: 'Kill Chain Phases (JSON)', type: 'text' }
-        ]
-      },
-      'vulnerability': {
-        primaryField: 'name',
-        additionalFields: [{ name: 'description', label: 'Description', type: 'text' }]
-      }
-    };
-
-    const App = () => {
-      const [bundle, setBundle] = useState(null);
-      const [importError, setImportError] = useState(null);
-      const [showImportModal, setShowImportModal] = useState(false);
-      const [importJson, setImportJson] = useState('');
-      const [copied, setCopied] = useState(false);
-      const [objectType, setObjectType] = useState('');
-      const [createdObjects, setCreatedObjects] = useState([]);
-      const [objectName, setObjectName] = useState('');
-      const [objectNameError, setObjectNameError] = useState(null);
-      const [values, setValues] = useState('');
-      const [additionalFields, setAdditionalFields] = useState({});
-      const [hashes, setHashes] = useState([]);
-      const [hashValue, setHashValue] = useState('');
-      const [hashType, setHashType] = useState(hashTypes[0]);
-      const [sourceObjectIndex, setSourceObjectIndex] = useState('');
-      const [targetObjectIndex, setTargetObjectIndex] = useState('');
-      const [relationshipType, setRelationshipType] = useState('');
-      const [relationships, setRelationships] = useState([]);
-      const modalRef = useRef(null);
-      const textareaRef = useRef(null);
-
-      const handleAdditionalFieldChange = (name, value) => {
-        setAdditionalFields({
-          ...additionalFields,
-          [name]: typeof value === 'boolean' ? value : value.toString()
-        });
-      };
-
-      const addHash = () => {
-        if (!hashValue.trim() || !hashType) return;
-        setHashes([...hashes, { type: hashType, value: hashValue.trim() }]);
-        setHashValue('');
-        setHashType(hashTypes[0]);
-      };
-
-      const removeHash = (index) => {
-        setHashes(hashes.filter((_, i) => i !== index));
-      };
-
-      const saveObject = () => {
-        if (!objectType || !objectName.trim()) return;
-
-        const nameExists = createdObjects.some(
-          obj => obj.name.toLowerCase() === objectName.trim().toLowerCase()
-        );
-        if (nameExists) {
-          setObjectNameError('Object with this friendly name already exists.');
-          return;
-        }
-
-        const newObjects = [];
-        if (scoTypes.includes(objectType)) {
-          // Create SCO and its observed-data wrapper
-          let scoValues;
-          if (objectType === 'x509-certificate') {
-            if (hashes.length === 0) return;
-            scoValues = [hashes];
-          } else if (multiLineScoTypes.includes(objectType)) {
-            if (!values.trim()) return;
-            scoValues = values.split('\n').map(v => v.trim()).filter(v => v);
-          } else {
-            if (!values.trim()) return;
-            scoValues = [values.trim()];
-          }
-
-          scoValues.forEach((value, index) => {
-            const sco = {
-              type: objectType,
-              name: multiLineScoTypes.includes(objectType) ? `${objectName.trim()} (${value})` : objectName.trim(),
-              values: [value],
-              additionalFields: { ...additionalFields },
-              id: `${objectType}--${crypto.randomUUID()}`
-            };
-
-            // Create observed-data wrapper
-            const observedData = {
-              type: 'observed-data',
-              name: `Observed: ${sco.name}`,
-              id: `observed-data--${crypto.randomUUID()}`,
-              values: ['1'], // number_observed
-              additionalFields: {
-                first_observed: new Date().toISOString(),
-                last_observed: new Date().toISOString(),
-                number_observed: '1'
-              },
-              objects: { '0': sco } // Store SCO reference
-            };
-
-            newObjects.push(sco, observedData);
-          });
-        } else {
-          // SDOs are stored directly
-          if (!values.trim()) return;
-          newObjects.push({
-            type: objectType,
-            name: objectName.trim(),
-            values: [values.trim()],
-            additionalFields: { ...additionalFields },
-            id: `${objectType}--${crypto.randomUUID()}`
-          });
-        }
-
-        setCreatedObjects([...createdObjects, ...newObjects]);
-        setObjectNameError(null);
-        setObjectType('');
-        setObjectName('');
-        setValues('');
-        setHashes([]);
-        setAdditionalFields({});
-      };
-
-      const saveRelationship = () => {
-        if (sourceObjectIndex === '' || targetObjectIndex === '' || !relationshipType) return;
-        if (sourceObjectIndex === targetObjectIndex) return;
-
-        const sourceObject = createdObjects[sourceObjectIndex];
-        const targetObject = createdObjects[targetObjectIndex];
-
-        // Validate relationship against constraints
-        const sourceType = sourceObject.type;
-        const targetType = targetObject.type;
-        const allowedTargets = relationshipConstraints.relationships[sourceType]?.allowed_targets || [];
-        const allowedRelationshipTypes = relationshipConstraints.relationships[sourceType]?.relationship_types || [];
-        const constraint = relationshipConstraints.constraints.relationship_type[relationshipType];
-
-        if (!allowedTargets.includes(targetType) ||
-            !allowedRelationshipTypes.includes(relationshipType) ||
-            !constraint.source.includes(sourceType) ||
-            !constraint.target.includes(targetType)) {
-          alert(`Invalid relationship: ${sourceType} cannot ${relationshipType} ${targetType}.`);
-          return;
-        }
-
-        const newRelationship = {
-          type: 'relationship',
-          id: `relationship--${crypto.randomUUID()}`,
-          source_ref: sourceObject.id,
-          target_ref: targetObject.id,
-          relationship_type: relationshipType,
-          source_name: sourceObject.name,
-          target_name: targetObject.name
-        };
-
-        setRelationships([...relationships, newRelationship]);
-        setSourceObjectIndex('');
-        setTargetObjectIndex('');
-        setRelationshipType('');
-      };
-
-      const removeRelationship = (index) => {
-        setRelationships(relationships.filter((_, i) => i !== index));
-        setBundle(null);
-      };
-
-      const removeObject = (index) => {
-        const objectToRemove = createdObjects[index];
-        setCreatedObjects(createdObjects.filter((_, i) => i !== index));
-        setRelationships(
-          relationships.filter(
-            rel => rel.source_ref !== objectToRemove.id && rel.target_ref !== objectToRemove.id
-          )
-        );
-        setBundle(null);
-      };
-
-      const copyToClipboard = () => {
-        if (!bundle) return;
-        navigator.clipboard.writeText(JSON.stringify(bundle, null, 2)).then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        });
-      };
-
-      const handleBundleImport = () => {
-        if (!importJson.trim()) {
-          setImportError('Please paste a STIX bundle JSON.');
-          return;
-        }
-        try {
-          const bundle = JSON.parse(importJson);
-          if (bundle.type !== 'bundle' || !Array.isArray(bundle.objects)) {
-            throw new Error('Invalid STIX bundle: Must have type "bundle" and an "objects" array.');
-          }
-
-          // Validate no top-level SCOs
-          const hasTopLevelSco = bundle.objects.some(obj => scoTypes.includes(obj.type));
-          if (hasTopLevelSco) {
-            throw new Error('Invalid STIX bundle: SCOs must not be top-level objects; they must be nested in SDOs like observed-data.');
-          }
-
-          // Validate observed-data objects
-          bundle.objects
-            .filter(obj => obj.type === 'observed-data')
-            .forEach(obj => {
-              if (!obj.number_observed || obj.number_observed < 1) {
-                throw new Error('Invalid STIX bundle: observed-data must have number_observed >= 1.');
-              }
-              if (!obj.first_observed || !obj.last_observed) {
-                throw new Error('Invalid STIX bundle: observed-data must have first_observed and last_observed.');
-              }
-              Object.values(obj.objects || {}).forEach(sco => {
-                if (sco.id || sco.spec_version) {
-                  throw new Error('Invalid STIX bundle: SCOs in observed-data.objects must not include id or spec_version.');
-                }
-              });
-            });
-
-          const newObjects = [];
-          const newRelationships = [];
-          const idToNameMap = {};
-
-          bundle.objects
-            .filter(obj => sdoTypes.includes(obj.type))
-            .forEach(obj => {
-              const config = sdoConfig[obj.type];
-              let newObj;
-
-              const proposedName = obj[config.primaryField] || `${obj.type}-${obj.id.substring(0, 8)}`;
-              if (createdObjects.some(existing => existing.name.toLowerCase() === proposedName.toLowerCase())) {
-                return;
-              }
-
-              const additionalFields = {};
-              config.additionalFields.forEach(field => {
-                if (field.name.includes('.')) {
-                  const [parent, child] = field.name.split('.');
-                  if (obj[parent] && obj[parent][child]) {
-                    additionalFields[field.name] = obj[parent][child];
-                  }
-                } else if (obj[field.name] !== undefined) {
-                  additionalFields[field.name] = Array.isArray(obj[field.name])
-                    ? obj[field.name].join(', ')
-                    : obj[field.name];
-                }
-              });
-
-              newObj = {
-                type: obj.type,
-                name: proposedName,
-                values: config.primaryField === 'number_observed' || config.primaryField === 'opinion'
-                  ? obj[config.primaryField]
-                  : [obj[config.primaryField]].filter(v => v),
-                additionalFields,
-                id: obj.id
-              };
-
-              // If observed-data, include nested SCOs
-              if (obj.type === 'observed-data' && obj.objects) {
-                newObj.objects = {};
-                Object.entries(obj.objects).forEach(([key, sco]) => {
-                  if (!scoTypes.includes(sco.type)) return;
-                  const scoConfigEntry = scoConfig[sco.type];
-                  const scoName = sco[scoConfigEntry.primaryField] || `${sco.type}-${crypto.randomUUID().substring(0, 8)}`;
-                  const scoAdditionalFields = {};
-                  scoConfigEntry.additionalFields.forEach(field => {
-                    if (field.name.includes('.')) {
-                      const [parent, child] = field.name.split('.');
-                      if (sco[parent] && sco[parent][child]) {
-                        scoAdditionalFields[field.name] = sco[parent][child];
-                      }
-                    } else if (sco[field.name] !== undefined) {
-                      scoAdditionalFields[field.name] = Array.isArray(sco[field.name])
-                        ? sco[field.name].join(', ')
-                        : sco[field.name];
-                    }
-                  });
-                  const scoValues = sco.type === 'x509-certificate'
-                    ? [Object.entries(sco.hashes || {}).map(([type, value]) => ({ type, value }))]
-                    : scoConfigEntry.primaryField === 'protocols'
-                      ? sco[scoConfigEntry.primaryField]
-                      : [sco[scoConfigEntry.primaryField]].filter(v => v);
-                  newObj.objects[key] = {
-                    type: sco.type,
-                    name: scoName,
-                    values: scoValues,
-                    additionalFields: scoAdditionalFields,
-                    id: `${sco.type}--${crypto.randomUUID()}`
-                  };
-                });
-              }
-
-              newObjects.push(newObj);
-              idToNameMap[obj.id] = newObj.name;
-            });
-
-          // Process observed-data to extract SCOs (for non-observed-data SCOs, if any)
-          bundle.objects
-            .filter(obj => obj.type === 'observed-data' && obj.objects)
-            .forEach(obj => {
-              Object.values(obj.objects).forEach(sco => {
-                if (!scoTypes.includes(sco.type)) return;
-
-                const config = scoConfig[sco.type];
-                const proposedName = sco[config.primaryField] || `${sco.type}-${crypto.randomUUID().substring(0, 8)}`;
-                if (createdObjects.some(existing => existing.name.toLowerCase() === proposedName.toLowerCase())) {
-                  return;
-                }
-
-                const additionalFields = {};
-                config.additionalFields.forEach(field => {
-                  if (field.name.includes('.')) {
-                    const [parent, child] = field.name.split('.');
-                    if (sco[parent] && sco[parent][child]) {
-                      additionalFields[field.name] = sco[parent][child];
-                    }
-                  } else if (sco[field.name] !== undefined) {
-                    additionalFields[field.name] = Array.isArray(sco[field.name])
-                      ? sco[field.name].join(', ')
-                      : sco[field.name];
-                  }
-                });
-
-                let values = [sco[config.primaryField]].filter(v => v);
-                if (sco.type === 'x509-certificate') {
-                  const hashes = Object.entries(sco.hashes || {}).map(([type, value]) => ({
-                    type,
-                    value
-                  }));
-                  values = [hashes];
-                } else if (config.primaryField === 'protocols') {
-                  values = sco[config.primaryField];
-                }
-
-                newObjects.push({
-                  type: sco.type,
-                  name: proposedName,
-                  values,
-                  additionalFields,
-                  id: `${sco.type}--${crypto.randomUUID()}`
-                });
-              });
-            });
-
-          bundle.objects
-            .filter(obj => obj.type === 'relationship')
-            .forEach(obj => {
-              if (idToNameMap[obj.source_ref] && idToNameMap[obj.target_ref]) {
-                newRelationships.push({
-                  type: obj.type,
-                  id: obj.id,
-                  source_ref: obj.source_ref,
-                  target_ref: obj.target_ref,
-                  relationship_type: obj.relationship_type,
-                  source_name: idToNameMap[obj.source_ref],
-                  target_name: idToNameMap[obj.target_ref]
-                });
-              }
-            });
-
-          if (newObjects.length === 0 && newRelationships.length === 0) {
-            setImportError('No valid SDOs or relationships found in the bundle.');
-          } else {
-            setCreatedObjects([...createdObjects, ...newObjects]);
-            setRelationships([...relationships, ...newRelationships]);
-            setImportError(null);
-            setShowImportModal(false);
-            setImportJson('');
-          }
-        } catch (err) {
-          setImportError(`Failed to import bundle: ${err.message}`);
-        }
-      };
-
-      const openImportModal = () => {
-        setShowImportModal(true);
-        setImportError(null);
-        setImportJson('');
-      };
-
-      const closeImportModal = () => {
-        setShowImportModal(false);
-        setImportError(null);
-        setImportJson('');
-      };
-
-      const getAllowedTargets = (sourceType) => {
-        return relationshipConstraints.relationships[sourceType]?.allowed_targets || [];
-      };
-
-      const getAllowedRelationshipTypes = (sourceType, targetType) => {
-        const sourceConstraints = relationshipConstraints.relationships[sourceType]?.relationship_types || [];
-        const targetConstraints = relationshipConstraints.constraints.relationship_type;
-        return sourceConstraints.filter(type => {
-          const constraint = targetConstraints[type];
-          return constraint.source.includes(sourceType) && constraint.target.includes(targetType);
-        });
-      };
-
-      const isValidRelationship = (sourceType, targetType, relType) => {
-        const allowedTargets = getAllowedTargets(sourceType);
-        const allowedRelationshipTypes = getAllowedRelationshipTypes(sourceType, targetType);
-        return allowedTargets.includes(targetType) && allowedRelationshipTypes.includes(relType);
-      };
-
-      const generateBundle = () => {
-        const bundle = {
-          type: 'bundle',
-          id: `bundle--${crypto.randomUUID()}`,
-          objects: []
-        };
-
-        createdObjects.forEach(obj => {
-          if (!obj.values || obj.values.length === 0) return;
-
-          if (obj.type === 'observed-data') {
-            // Handle observed-data SDOs
-            const stixObj = {
-              type: obj.type,
-              id: obj.id,
-              spec_version: '2.1',
-              created: new Date().toISOString(),
-              modified: new Date().toISOString(),
-              number_observed: parseInt(obj.additionalFields.number_observed) || 1,
-              first_observed: obj.additionalFields.first_observed || new Date().toISOString(),
-              last_observed: obj.additionalFields.last_observed || new Date().toISOString()
-            };
-
-            if (obj.objects) {
-              stixObj.objects = {};
-              Object.entries(obj.objects).forEach(([key, sco]) => {
-                const scoObj = { type: sco.type };
-                if (sco.type === 'x509-certificate') {
-                  scoObj.hashes = sco.values[0].reduce((acc, hash) => ({
-                    ...acc,
-                    [hash.type]: hash.value
-                  }), {});
-                } else {
-                  const config = scoConfig[sco.type];
-                  if (config.primaryField === 'protocols') {
-                    scoObj[config.primaryField] = sco.values;
-                  } else if (config.primaryField === 'pid') {
-                    scoObj[config.primaryField] = parseInt(sco.values[0]) || sco.values[0];
-                  } else {
-                    scoObj[config.primaryField] = sco.values[0];
-                  }
-                }
-
-                Object.entries(sco.additionalFields).forEach(([key, val]) => {
-                  if (val) {
-                    if (key.includes('.')) {
-                      const [parent, child] = key.split('.');
-                      scoObj[parent] = { ...scoObj[parent], [child]: val };
-                    } else if (key === 'to_refs' || key === 'contains_refs' || key === 'object_refs' || key === 'analysis_sco_refs') {
-                      scoObj[key] = val.split(',').map(v => v.trim()).filter(v => v);
-                    } else if (key === 'values' && sco.type === 'windows-registry-key') {
-                      try {
-                        scoObj[key] = JSON.parse(val);
-                      } catch {
-                        scoObj[key] = val;
-                      }
-                    } else if (['src_port', 'dst_port'].includes(key)) {
-                      scoObj[key] = parseInt(val) || val;
-                    } else if (['is_multipart', 'is_active', 'is_service_account', 'is_privileged', 'can_escalate_privs', 'is_disabled'].includes(key)) {
-                      scoObj[key] = val === 'true' || val === true;
-                    } else {
-                      scoObj[key] = val;
-                    }
-                  }
-                });
-
-                stixObj.objects[key] = scoObj;
-              });
-            }
-
-            bundle.objects.push(stixObj);
-          } else if (sdoTypes.includes(obj.type)) {
-            // Other SDOs are top-level
-            const config = sdoConfig[obj.type];
-            const stixObj = {
-              type: obj.type,
-              id: obj.id,
-              spec_version: '2.1',
-              created: new Date().toISOString(),
-              modified: new Date().toISOString()
-            };
-
-            if (config.primaryField === 'number_observed' || config.primaryField === 'opinion') {
-              stixObj[config.primaryField] = config.primaryField === 'number_observed' ? 
-                (parseInt(obj.values[0]) || 1) : obj.values[0];
-            } else {
-              stixObj[config.primaryField] = obj.values[0];
-            }
-
-            Object.entries(obj.additionalFields).forEach(([key, val]) => {
-              if (val) {
-                if (key.includes('.')) {
-                  const [parent, child] = key.split('.');
-                  stixObj[parent] = { ...stixObj[parent], [child]: val };
-                } else if (['aliases', 'sectors', 'infrastructure_types', 'malware_types', 'tool_types', 'threat_actor_types', 'roles', 'goals', 'authors', 'object_refs', 'analysis_sco_refs', 'report_types'].includes(key)) {
-                  stixObj[key] = val.split(',').map(v => v.trim()).filter(v => v);
-                } else if (['kill_chain_phases'].includes(key)) {
-                  try {
-                    stixObj[key] = JSON.parse(val);
-                  } catch {
-                    stixObj[key] = [];
-                  }
-                } else if (['latitude', 'longitude'].includes(key)) {
-                  stixObj[key] = parseFloat(val) || 0.0;
-                } else if (['number_observed'].includes(key)) {
-                  stixObj[key] = parseInt(val) || 1;
-                } else if (['is_family'].includes(key)) {
-                  stixObj[key] = val === 'true' || val === true;
-                } else {
-                  stixObj[key] = val;
-                }
-              }
-            });
-
-            bundle.objects.push(stixObj);
-          }
-        });
-
-        relationships.forEach(rel => {
-          bundle.objects.push({
-            type: rel.type,
-            id: rel.id,
-            source_ref: rel.source_ref,
-            target_ref: rel.target_ref,
-            relationship_type: rel.relationship_type,
-            spec_version: '2.1',
-            created: new Date().toISOString(),
-            modified: new Date().toISOString()
-          });
-        });
-
-        setBundle(bundle);
-      };
-
-      const downloadBundle = () => {
-        if (!bundle) return;
-        const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'stix_bundle.json';
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-
-      useEffect(() => {
-        if (showImportModal && textareaRef.current) {
-          textareaRef.current.focus();
-        }
-      }, [showImportModal]);
-
-      useEffect(() => {
-        const handleKeyDown = (e) => {
-          if (e.key === 'Escape' && showImportModal) {
-            closeImportModal();
-          }
-        };
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-      }, [showImportModal]);
-
-      return (
-        <div className="container mx-auto p-4 max-w-4xl">
-          <h1 className="text-2xl font-bold mb-4">STIX Bundle Generator</h1>
-          <p className="text-sm text-gray-600 mb-4">Note: SCOs will be automatically wrapped in observed-data objects in the generated bundle.</p>
-
-          <div>
-            <h2 className="text-lg font-semibold mb-4">Builder</h2>
-
-            <div className="mb-8">
-              <h3 className="text-sm font-medium mb-2">Create Object</h3>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1" htmlFor="object-type">Select Object Type</label>
-                <select
-                  id="object-type"
-                  value={objectType}
-                  onChange={(e) => {
-                    setObjectType(e.target.value);
-                    setValues('');
-                    setHashes([]);
-                    setAdditionalFields({});
-                    setObjectName('');
-                    setObjectNameError(null);
-                  }}
-                  className="w-full p-2 border rounded"
-                  aria-label="Select Object Type"
-                >
-                  <option value="" disabled selected hidden>Select Object Type</option>
-                  <optgroup label="Cyber Object Types">
-                    {scoTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Domain Object Types">
-                    {sdoTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </optgroup>
-                </select>
-              </div>
-
-              {objectType && (
-                <div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Friendly Name</label>
-                    <input
-                      type="text"
-                      value={objectName}
-                      onChange={(e) => {
-                        setObjectName(e.target.value);
-                        setObjectNameError(null);
-                      }}
-                      className="w-full p-2 border rounded"
-                      placeholder="Enter a friendly name for this object"
-                    />
-                    {objectNameError && (
-                      <div className="mt-2 p-2 bg-red-100 text-red-700 rounded">
-                        {objectNameError}
-                      </div>
-                    )}
-                  </div>
-
-                  {objectType === 'x509-certificate' ? (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Add Hashes</h4>
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={hashValue}
-                          onChange={(e) => setHashValue(e.target.value)}
-                          className="w-2/3 p-2 border rounded"
-                          placeholder="Enter hash"
-                        />
-                        <select
-                          value={hashType}
-                          onChange={(e) => setHashType(e.target.value)}
-                          className="w-1/3 p-2 border rounded"
-                        >
-                          {hashTypes.map(type => (
-                            <option key={type} value={type}>{type}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        onClick={addHash}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-                        disabled={!hashValue.trim()}
-                      >
-                        Add Hash
-                      </button>
-                      {hashes.length > 0 && (
-                        <div className="mt-2">
-                          <h4 className="text-sm font-medium">Added Hashes</h4>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {hashes.map((hash, index) => (
-                              <div
-                                key={index}
-                                className="bg-gray-200 px-3 py-1 rounded-full flex items-center"
-                              >
-                                <span>{hash.type}: {hash.value.substring(0, 8)}...</span>
-                                <button
-                                  onClick={() => removeHash(index)}
-                                  className="ml-2 text-red-500 hover:text-red-700"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">
-                        Enter {(scoConfig[objectType] || sdoConfig[objectType]).primaryField}
-                      </label>
-                      {multiLineScoTypes.includes(objectType) ? (
-                        <textarea
-                          value={values}
-                          onChange={(e) => setValues(e.target.value)}
-                          className="w-full p-2 border rounded h-32"
-                          placeholder={`Enter ${(scoConfig[objectType] || sdoConfig[objectType]).primaryField}, one per line`}
-                        />
-                      ) : (
-                        <input
-                          type={objectType === 'process' ? 'number' : 'text'}
-                          value={values}
-                          onChange={(e) => setValues(e.target.value)}
-                          className="w-full p-2 border rounded"
-                          placeholder={`Enter ${(scoConfig[objectType] || sdoConfig[objectType]).primaryField}`}
-                        />
-                      )}
-                    </div>
-                  )}
-
-                  {(scoConfig[objectType] || sdoConfig[objectType])?.additionalFields?.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Additional Fields</h4>
-                      {(scoConfig[objectType] || sdoConfig[objectType]).additionalFields.map(field => (
-                        <div key={field.name} className="mb-2">
-                          <label className="block text-sm font-medium mb-1">{field.label}</label>
-                          {field.type === 'checkbox' ? (
-                            <input
-                              type="checkbox"
-                              checked={additionalFields[field.name] === true || additionalFields[field.name] === 'true'}
-                              onChange={(e) => handleAdditionalFieldChange(field.name, e.target.checked)}
-                              className="p-2 border rounded"
-                            />
-                          ) : field.type === 'select' ? (
-                            <select
-                              value={additionalFields[field.name] || ''}
-                              onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
-                              className="w-full p-2 border rounded"
-                            >
-                              <option value="" disabled>Select {field.label}</option>
-                              {field.options.map(option => (
-                                <option key={option} value={option}>{option}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <input
-                              type={field.type}
-                              step={field.step || undefined}
-                              value={additionalFields[field.name] || ''}
-                              onChange={(e) => handleAdditionalFieldChange(field.name, e.target.value)}
-                              className="w-full p-2 border rounded"
-                              placeholder={`Enter ${field.label}`}
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <button
-                    onClick={saveObject}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-                    disabled={
-                      !objectName.trim() ||
-                      (objectType === 'x509-certificate' ? hashes.length === 0 : !values.trim())
-                    }
-                  >
-                    Create Object
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {createdObjects.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-sm font-medium mb-2">Created Objects</h3>
-                <ul className="list-disc pl-5">
-                  {createdObjects.map((obj, index) => (
-                    <li key={index} className="text-sm flex items-center">
-                      <span>{`${obj.name} (${obj.type})`}</span>
-                      <button
-                        onClick={() => removeObject(index)}
-                        className="ml-2 text-red-500 hover:text-red-700"
-                      >
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {createdObjects.length >= 2 && (
-              <div className="mb-8">
-                <h3 className="text-sm font-medium mb-2">Create SDO-to-SDO Relationship</h3>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1" htmlFor="source-object">Source Object (SDO)</label>
-                  <select
-                    id="source-object"
-                    value={sourceObjectIndex}
-                    onChange={(e) => {
-                      setSourceObjectIndex(e.target.value);
-                      setTargetObjectIndex('');
-                      setRelationshipType('');
-                    }}
-                    className="w-full p-2 border rounded"
-                    aria-label="Select Source Object"
-                  >
-                    <option value="" disabled selected>Select Source Object</option>
-                    {createdObjects
-                      .filter(obj => Object.keys(relationshipConstraints.relationships).includes(obj.type))
-                      .map((obj, index) => (
-                        <option key={index} value={createdObjects.findIndex(o => o.id === obj.id)}>
-                          {`${obj.name} (${obj.type})`}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1" htmlFor="target-object">Target Object (SDO)</label>
-                  <select
-                    id="target-object"
-                    value={targetObjectIndex}
-                    onChange={(e) => {
-                      setTargetObjectIndex(e.target.value);
-                      setRelationshipType('');
-                    }}
-                    className="w-full p-2 border rounded"
-                    aria-label="Select Target Object"
-                    disabled={!sourceObjectIndex}
-                  >
-                    <option value="" disabled selected>Select Target Object</option>
-                    {sourceObjectIndex !== '' &&
-                      createdObjects
-                        .filter(obj => {
-                          const sourceType = createdObjects[sourceObjectIndex].type;
-                          const allowedTargets = getAllowedTargets(sourceType);
-                          return allowedTargets.includes(obj.type);
-                        })
-                        .map((obj, index) => (
-                          <option key={index} value={createdObjects.findIndex(o => o.id === obj.id)}>
-                            {`${obj.name} (${obj.type})`}
-                          </option>
-                        ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1" htmlFor="relationship-type">Relationship Type</label>
-                  <select
-                    id="relationship-type"
-                    value={relationshipType}
-                    onChange={(e) => setRelationshipType(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    aria-label="Select Relationship Type"
-                    disabled={!sourceObjectIndex || !targetObjectIndex}
-                  >
-                    <option value="" disabled selected>Select Relationship Type</option>
-                    {sourceObjectIndex !== '' && targetObjectIndex !== '' &&
-                      getAllowedRelationshipTypes(
-                        createdObjects[sourceObjectIndex].type,
-                        createdObjects[targetObjectIndex].type
-                      ).map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                  </select>
-                </div>
-                <button
-                  onClick={saveRelationship}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-                  disabled={
-                    sourceObjectIndex === '' ||
-                    targetObjectIndex === '' ||
-                    !relationshipType ||
-                    sourceObjectIndex === targetObjectIndex
-                  }
-                >
-                  Create Relationship
-                </button>
-              </div>
-            )}
-
-            {relationships.length > 0 && (
-              <div className="mt-4 mb-8">
-                <h3 className="text-sm font-medium mb-2">Created Relationships</h3>
-                <ul className="list-disc pl-5">
-                  {relationships.map((rel, index) => (
-                    <li key={index} className="text-sm flex items-center">
-                      <span>{`${rel.source_name} -> ${rel.relationship_type} -> ${rel.target_name}`}</span>
-                      <button
-                        onClick={() => removeRelationship(index)}
-                        className="ml-2 text-red-500 hover:text-red-700"
-                      >
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={openImportModal}
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-                aria-label="Import"
-              >
-                Import
-              </button>
-              {(createdObjects.length > 0 || relationships.length > 0) && (
-                <button
-                  onClick={generateBundle}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  Generate STIX Bundle
-                </button>
-              )}
-            </div>
-
-            {bundle && (
-              <div className="mt-4">
-                <h2 className="text-lg font-semibold">STIX Bundle</h2>
-                <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-96">
-                  {JSON.stringify(bundle, null, 2)}
-                </pre>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={downloadBundle}
-                    className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-                    aria-label="Download STIX bundle as JSON"
-                  >
-                    Download JSON
-                  </button>
-                  <button
-                    onClick={copyToClipboard}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    aria-label={copied ? "JSON copied to clipboard" : "Copy STIX bundle JSON to clipboard"}
-                  >
-                    {copied ? 'Copied!' : 'Copy to Clipboard'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {showImportModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div
-                  ref={modalRef}
-                  className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"
-                  role="dialog"
-                  aria-labelledby="modal-title"
-                >
-                  <h2 id="modal-title" className="text-lg font-semibold mb-4">Import STIX Bundle</h2>
-                  <textarea
-                    ref={textareaRef}
-                    value={importJson}
-                    onChange={(e) => setImportJson(e.target.value)}
-                    className="w-full p-2 border rounded h-48 mb-4"
-                    placeholder="Paste STIX bundle JSON here"
-                    aria-label="STIX bundle JSON"
-                  />
-                  {importError && (
-                    <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
-                      {importError}
-                    </div>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleBundleImport}
-                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      aria-label="Submit STIX bundle"
-                    >
-                      Submit
-                    </button>
-                    <button
-                      onClick={closeImportModal}
-                      className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                      aria-label="Cancel import"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <footer className="mt-8 py-4 bg-gray-100 text-center text-sm text-gray-600" role="contentinfo">
-            Created by Grok, narrated by gbyx3
-          </footer>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ STIX Generator</h1>
+            <p>Create and manage STIX 2.1 threat intelligence objects and bundles</p>
         </div>
-      );
-    };
 
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
+        <div id="statusMessage"></div>
+
+        <div class="main-grid">
+
+            <div class="card">
+                <h2>Create STIX Object</h2>
+                
+                <div class="form-group">
+                    <label for="objectType">Object Type:</label>
+                    <select id="objectType" onchange="updateObjectForm()">
+                        <option value="">Select object type...</option>
+                        <option value="indicator">Indicator</option>
+                        <option value="malware">Malware</option>
+                        <option value="threat-actor">Threat Actor</option>
+                        <option value="attack-pattern">Attack Pattern</option>
+                        <option value="campaign">Campaign</option>
+                        <option value="intrusion-set">Intrusion Set</option>
+                        <option value="tool">Tool</option>
+                        <option value="observed-data">Observed Data</option>
+                    </select>
+                </div>
+
+                <div id="objectForm"></div>
+
+                <button class="btn" onclick="addObject()" id="addObjectBtn" disabled>Add Object</button>
+            </div>
+
+            <div class="card">
+                <h2>Current Objects (<span id="objectCount">0</span>)</h2>
+                <div id="objectsList" class="objects-list">
+                    <p style="color: #a0aec0; text-align: center; padding: 20px;">No objects created yet</p>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="btn" onclick="createBundle()" id="createBundleBtn" disabled>Create Bundle</button>
+                    <button class="btn btn-secondary" onclick="clearObjects()">Clear All</button>
+                </div>
+            </div>
+
+
+            <div class="card full-width">
+                <h2>Bundle Management</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h3 style="margin-bottom: 15px; color: #4a5568;">Current Bundle</h3>
+                        <div id="bundleValidation"></div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn" onclick="validateBundle()" id="validateBtn" disabled>Validate Bundle</button>
+                            <button class="btn" onclick="saveBundle()" id="saveBundleBtn" disabled>Save Bundle</button>
+                            <button class="btn btn-secondary" onclick="exportBundle()">Export JSON</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 15px; color: #4a5568;">Saved Bundles</h3>
+                        <div id="bundlesList" class="bundles-list">
+                            <p style="color: #a0aec0; text-align: center; padding: 20px;">No saved bundles</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadBundles()" style="margin-top: 10px;">Refresh List</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card full-width output-section">
+                <h2>JSON Output</h2>
+                <div id="jsonOutput" class="json-output">
+                    // Your STIX bundle will appear here
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentObjects = [];
+        let currentBundle = null;
+
+        const formTemplates = {
+            indicator: `
+                <div class="form-group">
+                    <label for="indicatorPattern">Pattern:</label>
+                    <textarea id="indicatorPattern" placeholder="[file:hashes.MD5 = 'd41d8cd98f00b204e9800998ecf8427e']" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="indicatorLabels">Labels (comma-separated):</label>
+                    <input type="text" id="indicatorLabels" placeholder="malicious-activity, suspicious" required>
+                </div>
+                <div class="form-group">
+                    <label for="indicatorDescription">Description (optional):</label>
+                    <textarea id="indicatorDescription" placeholder="Description of the indicator"></textarea>
+                </div>
+            `,
+            malware: `
+                <div class="form-group">
+                    <label for="malwareName">Name:</label>
+                    <input type="text" id="malwareName" placeholder="BadMalware" required>
+                </div>
+                <div class="form-group">
+                    <label for="malwareLabels">Labels (comma-separated):</label>
+                    <input type="text" id="malwareLabels" placeholder="trojan, backdoor, keylogger" required>
+                </div>
+                <div class="form-group">
+                    <label for="malwareDescription">Description (optional):</label>
+                    <textarea id="malwareDescription" placeholder="Description of the malware"></textarea>
+                </div>
+            `,
+            "threat-actor": `
+                <div class="form-group">
+                    <label for="threatActorName">Name:</label>
+                    <input type="text" id="threatActorName" placeholder="Evil Corp" required>
+                </div>
+                <div class="form-group">
+                    <label for="threatActorLabels">Labels (comma-separated):</label>
+                    <input type="text" id="threatActorLabels" placeholder="hacker, criminal" required>
+                </div>
+                <div class="form-group">
+                    <label for="threatActorDescription">Description (optional):</label>
+                    <textarea id="threatActorDescription" placeholder="Description of the threat actor"></textarea>
+                </div>
+            `,
+            "attack-pattern": `
+                <div class="form-group">
+                    <label for="attackPatternName">Name:</label>
+                    <input type="text" id="attackPatternName" placeholder="Spear Phishing" required>
+                </div>
+                <div class="form-group">
+                    <label for="attackPatternDescription">Description (optional):</label>
+                    <textarea id="attackPatternDescription" placeholder="Description of the attack pattern"></textarea>
+                </div>
+            `,
+            campaign: `
+                <div class="form-group">
+                    <label for="campaignName">Name:</label>
+                    <input type="text" id="campaignName" placeholder="Operation BadActor" required>
+                </div>
+                <div class="form-group">
+                    <label for="campaignDescription">Description (optional):</label>
+                    <textarea id="campaignDescription" placeholder="Description of the campaign"></textarea>
+                </div>
+            `,
+            "intrusion-set": `
+                <div class="form-group">
+                    <label for="intrusionSetName">Name:</label>
+                    <input type="text" id="intrusionSetName" placeholder="APT1" required>
+                </div>
+                <div class="form-group">
+                    <label for="intrusionSetDescription">Description (optional):</label>
+                    <textarea id="intrusionSetDescription" placeholder="Description of the intrusion set"></textarea>
+                </div>
+            `,
+            tool: `
+                <div class="form-group">
+                    <label for="toolName">Name:</label>
+                    <input type="text" id="toolName" placeholder="BadTool" required>
+                </div>
+                <div class="form-group">
+                    <label for="toolLabels">Labels (comma-separated):</label>
+                    <input type="text" id="toolLabels" placeholder="remote-access-trojan, credential-stealer" required>
+                </div>
+                <div class="form-group">
+                    <label for="toolDescription">Description (optional):</label>
+                    <textarea id="toolDescription" placeholder="Description of the tool"></textarea>
+                </div>
+            `,
+            "observed-data": `
+                <div class="form-group">
+                    <label for="numberObserved">Number Observed:</label>
+                    <input type="number" id="numberObserved" min="1" placeholder="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="firstObserved">First Observed:</label>
+                    <input type="datetime-local" id="firstObserved" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastObserved">Last Observed:</label>
+                    <input type="datetime-local" id="lastObserved" required>
+                </div>
+                <div class="form-group">
+                    <label for="observedObjects">Objects (JSON format):</label>
+                    <textarea id="observedObjects" placeholder='{"0": {"type": "file", "hashes": {"MD5": "d41d8cd98f00b204e9800998ecf8427e"}}}' required></textarea>
+                </div>
+            `
+        };
+
+        function updateObjectForm() {
+            const objectType = document.getElementById('objectType').value;
+            const formContainer = document.getElementById('objectForm');
+            const addBtn = document.getElementById('addObjectBtn');
+
+            if (objectType && formTemplates[objectType]) {
+                formContainer.innerHTML = formTemplates[objectType];
+                addBtn.disabled = false;
+
+                if (objectType === 'observed-data') {
+                    const now = new Date();
+                    const nowString = now.toISOString().slice(0, 16);
+                    document.getElementById('firstObserved').value = nowString;
+                    document.getElementById('lastObserved').value = nowString;
+                }
+            } else {
+                formContainer.innerHTML = '';
+                addBtn.disabled = true;
+            }
+        }
+
+        function addObject() {
+            const objectType = document.getElementById('objectType').value;
+            
+            try {
+                let objectData = {
+                    type: objectType,
+                    id: `${objectType}--${generateUUID()}`,
+                    spec_version: "2.1",
+                    created: new Date().toISOString(),
+                    modified: new Date().toISOString()
+                };
+
+                switch (objectType) {
+                    case 'indicator':
+                        objectData.pattern = document.getElementById('indicatorPattern').value;
+                        objectData.labels = document.getElementById('indicatorLabels').value.split(',').map(s => s.trim());
+                        objectData.valid_from = new Date().toISOString();
+                        if (document.getElementById('indicatorDescription').value) {
+                            objectData.description = document.getElementById('indicatorDescription').value;
+                        }
+                        break;
+
+                    case 'malware':
+                        objectData.name = document.getElementById('malwareName').value;
+                        objectData.labels = document.getElementById('malwareLabels').value.split(',').map(s => s.trim());
+                        if (document.getElementById('malwareDescription').value) {
+                            objectData.description = document.getElementById('malwareDescription').value;
+                        }
+                        break;
+
+                    case 'threat-actor':
+                        objectData.name = document.getElementById('threatActorName').value;
+                        objectData.labels = document.getElementById('threatActorLabels').value.split(',').map(s => s.trim());
+                        if (document.getElementById('threatActorDescription').value) {
+                            objectData.description = document.getElementById('threatActorDescription').value;
+                        }
+                        break;
+
+                    case 'attack-pattern':
+                        objectData.name = document.getElementById('attackPatternName').value;
+                        if (document.getElementById('attackPatternDescription').value) {
+                            objectData.description = document.getElementById('attackPatternDescription').value;
+                        }
+                        break;
+
+                    case 'campaign':
+                        objectData.name = document.getElementById('campaignName').value;
+                        if (document.getElementById('campaignDescription').value) {
+                            objectData.description = document.getElementById('campaignDescription').value;
+                        }
+                        break;
+
+                    case 'intrusion-set':
+                        objectData.name = document.getElementById('intrusionSetName').value;
+                        if (document.getElementById('intrusionSetDescription').value) {
+                            objectData.description = document.getElementById('intrusionSetDescription').value;
+                        }
+                        break;
+
+                    case 'tool':
+                        objectData.name = document.getElementById('toolName').value;
+                        objectData.labels = document.getElementById('toolLabels').value.split(',').map(s => s.trim());
+                        if (document.getElementById('toolDescription').value) {
+                            objectData.description = document.getElementById('toolDescription').value;
+                        }
+                        break;
+
+                    case 'observed-data':
+                        objectData.number_observed = parseInt(document.getElementById('numberObserved').value);
+                        objectData.first_observed = new Date(document.getElementById('firstObserved').value).toISOString();
+                        objectData.last_observed = new Date(document.getElementById('lastObserved').value).toISOString();
+                        objectData.objects = JSON.parse(document.getElementById('observedObjects').value);
+                        break;
+                }
+
+                currentObjects.push(objectData);
+                updateObjectsList();
+                clearForm();
+                showStatus('Object added successfully!', 'success');
+
+            } catch (error) {
+                showStatus('Error adding object: ' + error.message, 'error');
+            }
+        }
+
+        function updateObjectsList() {
+            const container = document.getElementById('objectsList');
+            const countElement = document.getElementById('objectCount');
+            const createBundleBtn = document.getElementById('createBundleBtn');
+
+            countElement.textContent = currentObjects.length;
+
+            if (currentObjects.length === 0) {
+                container.innerHTML = '<p style="color: #a0aec0; text-align: center; padding: 20px;">No objects created yet</p>';
+                createBundleBtn.disabled = true;
+                return;
+            }
+
+            createBundleBtn.disabled = false;
+
+            container.innerHTML = currentObjects.map((obj, index) => `
+                <div class="object-item">
+                    <div class="object-info">
+                        <div class="object-type">${obj.type}</div>
+                        <div class="object-name">${obj.name || obj.pattern || 'N/A'}</div>
+                        <div class="object-id">${obj.id}</div>
+                    </div>
+                    <button class="btn btn-danger btn-small" onclick="removeObject(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeObject(index) {
+            currentObjects.splice(index, 1);
+            updateObjectsList();
+            showStatus('Object removed', 'success');
+        }
+
+        function clearObjects() {
+            currentObjects = [];
+            currentBundle = null;
+            updateObjectsList();
+            document.getElementById('jsonOutput').textContent = '// Your STIX bundle will appear here';
+            document.getElementById('bundleValidation').innerHTML = '';
+            document.getElementById('validateBtn').disabled = true;
+            document.getElementById('saveBundleBtn').disabled = true;
+            showStatus('All objects cleared', 'success');
+        }
+
+        function createBundle() {
+            if (currentObjects.length === 0) {
+                showStatus('No objects to create bundle', 'warning');
+                return;
+            }
+
+            currentBundle = {
+                type: "bundle",
+                id: `bundle--${generateUUID()}`,
+                objects: [...currentObjects]
+            };
+
+            document.getElementById('jsonOutput').textContent = JSON.stringify(currentBundle, null, 2);
+            document.getElementById('validateBtn').disabled = false;
+            document.getElementById('saveBundleBtn').disabled = false;
+            
+            showStatus('Bundle created successfully!', 'success');
+        }
+
+        function validateBundle() {
+            if (!currentBundle) {
+                showStatus('No bundle to validate', 'warning');
+                return;
+            }
+
+
+            const validationResults = {
+                valid: true,
+                errors: [],
+                warnings: []
+            };
+
+
+            if (currentBundle.type !== 'bundle') {
+                validationResults.errors.push("Bundle must have type 'bundle'");
+                validationResults.valid = false;
+            }
+
+            if (!currentBundle.objects || !Array.isArray(currentBundle.objects)) {
+                validationResults.errors.push("Bundle must contain an 'objects' array");
+                validationResults.valid = false;
+            }
+
+
+            currentBundle.objects.forEach(obj => {
+                if (obj.type === 'observed-data') {
+                    if (!obj.number_observed || obj.number_observed < 1) {
+                        validationResults.errors.push(`observed-data ${obj.id} must have number_observed >= 1`);
+                        validationResults.valid = false;
+                    }
+                    
+                    if (!obj.first_observed || !obj.last_observed) {
+                        validationResults.errors.push(`observed-data ${obj.id} must have first_observed and last_observed`);
+                        validationResults.valid = false;
+                    }
+                }
+            });
+
+            displayValidationResults(validationResults);
+        }
+
+        function displayValidationResults(results) {
+            const container = document.getElementById('bundleValidation');
+            
+            let html = '';
+            
+            if (results.valid) {
+                html = '<div class="status-message status-success">✅ Bundle validation passed!</div>';
+            } else {
+                html = '<div class="status-message status-error">❌ Bundle validation failed</div>';
+            }
+
+            if (results.errors.length > 0) {
+                html += '<div class="validation-results">';
+                html += '<h4 style="color: #742a2a; margin-bottom: 10px;">Errors:</h4>';
+                results.errors.forEach(error => {
+                    html += `<div class="validation-item validation-error">${error}</div>`;
+                });
+                html += '</div>';
+            }
+
+            if (results.warnings.length > 0) {
+                html += '<div class="validation-results">';
+                html += '<h4 style="color: #744210; margin-bottom: 10px;">Warnings:</h4>';
+                results.warnings.forEach(warning => {
+                    html += `<div class="validation-item validation-warning">${warning}</div>`;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        async function saveBundle() {
+            if (!currentBundle) {
+                showStatus('No bundle to save', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/save-bundle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(currentBundle)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showStatus(`Bundle saved as ${result.filename}`, 'success');
+                    loadBundles(); 
+                } else {
+                    showStatus(`Error saving bundle: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`Error saving bundle: ${error.message}`, 'error');
+            }
+        }
+
+        function exportBundle() {
+            if (!currentBundle) {
+                showStatus('No bundle to export', 'warning');
+                return;
+            }
+
+            const dataStr = JSON.stringify(currentBundle, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `stix_bundle_${currentBundle.id}.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showStatus('Bundle exported successfully!', 'success');
+        }
+
+        async function loadBundles() {
+            try {
+                const response = await fetch('/api/bundles');
+                const result = await response.json();
+
+                const container = document.getElementById('bundlesList');
+
+                if (result.bundles && result.bundles.length > 0) {
+                    container.innerHTML = result.bundles.map(bundle => `
+                        <div class="bundle-item" onclick="loadBundle('${bundle.filename}')">
+                            <div class="bundle-name">${bundle.filename}</div>
+                            <div class="bundle-info">
+                                ID: ${bundle.id}<br>
+                                Objects: ${bundle.objects_count}<br>
+                                Created: ${new Date(bundle.created * 1000).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="color: #a0aec0; text-align: center; padding: 20px;">No saved bundles</p>';
+                }
+            } catch (error) {
+                showStatus(`Error loading bundles: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadBundle(filename) {
+            try {
+                const response = await fetch(`/api/bundle/${filename}`);
+                const bundle = await response.json();
+
+                if (response.ok) {
+                    currentBundle = bundle;
+                    currentObjects = [...bundle.objects];
+                    updateObjectsList();
+                    document.getElementById('jsonOutput').textContent = JSON.stringify(bundle, null, 2);
+                    document.getElementById('validateBtn').disabled = false;
+                    document.getElementById('saveBundleBtn').disabled = false;
+                    showStatus(`Bundle ${filename} loaded successfully!`, 'success');
+                } else {
+                    showStatus(`Error loading bundle: ${bundle.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`Error loading bundle: ${error.message}`, 'error');
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('objectType').value = '';
+            document.getElementById('objectForm').innerHTML = '';
+            document.getElementById('addObjectBtn').disabled = true;
+        }
+
+        function showStatus(message, type) {
+            const container = document.getElementById('statusMessage');
+            const statusClass = `status-${type}`;
+            
+            container.innerHTML = `<div class="status-message ${statusClass}">${message}</div>`;
+            
+
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBundles();
+        });
+    </script>
 </body>
 </html>
