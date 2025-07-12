@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STIX Generator</title>
+    <title>STIX Generator with Relationships</title>
     <style>
         * {
             margin: 0;
@@ -12,21 +12,21 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            color: #2d3748;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             color: white;
         }
 
@@ -36,42 +36,40 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
         .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
+            background: white;
+            border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card.full-width {
+            grid-column: 1 / -1;
         }
 
         .card h2 {
-            color: #4a5568;
+            color: #2d3748;
             margin-bottom: 20px;
-            font-size: 1.4rem;
-            border-bottom: 2px solid #e2e8f0;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #667eea;
             padding-bottom: 10px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: 600;
             color: #4a5568;
         }
@@ -80,11 +78,11 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
             font-size: 14px;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s;
         }
 
         .form-group input:focus,
@@ -92,12 +90,6 @@
         .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
         }
 
         .btn {
@@ -107,24 +99,15 @@
             padding: 12px 24px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             margin-right: 10px;
             margin-bottom: 10px;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .btn:disabled {
@@ -133,158 +116,121 @@
             transform: none;
         }
 
+        .btn-secondary {
+            background: #718096;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
         .objects-list {
             max-height: 300px;
             overflow-y: auto;
-            border: 2px solid #e2e8f0;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
             padding: 10px;
-            background: #f7fafc;
         }
 
         .object-item {
-            background: white;
+            background: #f7fafc;
             border: 1px solid #e2e8f0;
             border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
         }
 
-        .object-item:hover {
-            border-color: #667eea;
-            transform: translateX(5px);
+        .object-item h4 {
+            color: #2d3748;
+            margin-bottom: 5px;
         }
 
-        .object-info {
-            flex: 1;
-        }
-
-        .object-type {
-            font-weight: 600;
-            color: #667eea;
-            font-size: 0.9rem;
-        }
-
-        .object-name {
-            color: #4a5568;
-            font-size: 0.85rem;
-            margin-top: 2px;
-        }
-
-        .object-id {
-            color: #a0aec0;
-            font-size: 0.75rem;
-            font-family: monospace;
-        }
-
-        .btn-small {
-            padding: 6px 12px;
+        .object-item p {
+            color: #718096;
             font-size: 12px;
+            margin-bottom: 5px;
         }
 
-        .full-width {
-            grid-column: 1 / -1;
+        .object-item .object-id {
+            font-family: monospace;
+            font-size: 11px;
+            color: #a0aec0;
+            word-break: break-all;
         }
 
-        .output-section {
-            margin-top: 20px;
+        .relationship-item {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .relationship-item h4 {
+            color: #c53030;
+            margin-bottom: 5px;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #f0fff4;
+            color: #38a169;
+            border: 1px solid #c6f6d5;
+        }
+
+        .status-error {
+            background: #fff5f5;
+            color: #e53e3e;
+            border: 1px solid #fed7d7;
         }
 
         .json-output {
             background: #1a202c;
-            color: #e2e8f0;
+            color: #a0aec0;
+            border-radius: 8px;
             padding: 20px;
-            border-radius: 8px;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
-            line-height: 1.4;
-            max-height: 400px;
-            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.5;
             white-space: pre-wrap;
-            word-wrap: break-word;
+            overflow-x: auto;
+            min-height: 200px;
         }
 
-        .status-message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .status-success {
-            background: #c6f6d5;
-            color: #22543d;
-            border: 1px solid #9ae6b4;
-        }
-
-        .status-error {
-            background: #fed7d7;
-            color: #742a2a;
-            border: 1px solid #fc8181;
-        }
-
-        .status-warning {
-            background: #fefcbf;
-            color: #744210;
-            border: 1px solid #f6e05e;
-        }
-
-        .validation-results {
-            margin-top: 15px;
-        }
-
-        .validation-item {
-            padding: 8px 12px;
-            margin-bottom: 5px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-
-        .validation-error {
-            background: #fed7d7;
-            color: #742a2a;
-            border-left: 4px solid #e53e3e;
-        }
-
-        .validation-warning {
-            background: #fefcbf;
-            color: #744210;
-            border-left: 4px solid #f6e05e;
-        }
-
-        .bundles-list {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .bundle-item {
-            background: white;
+        .relationship-form {
+            background: #f8f9fa;
             border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
 
-        .bundle-item:hover {
-            border-color: #667eea;
-            background: #f7fafc;
+        .relationship-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 15px;
+            align-items: center;
         }
 
-        .bundle-name {
-            font-weight: 600;
-            color: #4a5568;
+        .relationship-arrow {
+            font-size: 20px;
+            color: #667eea;
+            text-align: center;
         }
 
-        .bundle-info {
-            font-size: 0.85rem;
-            color: #718096;
-            margin-top: 4px;
+        .inline-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: end;
         }
 
         @media (max-width: 768px) {
@@ -292,12 +238,13 @@
                 grid-template-columns: 1fr;
             }
             
-            .header h1 {
-                font-size: 2rem;
+            .relationship-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
             }
             
-            .container {
-                padding: 15px;
+            .relationship-arrow {
+                transform: rotate(90deg);
             }
         }
     </style>
@@ -312,7 +259,6 @@
         <div id="statusMessage"></div>
 
         <div class="main-grid">
-
             <div class="card">
                 <h2>Create STIX Object</h2>
                 
@@ -347,6 +293,74 @@
                 </div>
             </div>
 
+            <!-- RELATIONSHIP SECTION -->
+            <div class="card full-width">
+                <h2>Create Relationships</h2>
+                
+                <div class="relationship-form">
+                    <div class="relationship-grid">
+                        <div class="form-group">
+                            <label for="sourceObject">Source Object:</label>
+                            <select id="sourceObject">
+                                <option value="">Select source object...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="relationship-arrow">→</div>
+                        
+                        <div class="form-group">
+                            <label for="targetObject">Target Object:</label>
+                            <select id="targetObject">
+                                <option value="">Select target object...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="relationshipType">Relationship Type:</label>
+                        <select id="relationshipType">
+                            <option value="">Select relationship type...</option>
+                            <option value="indicates">indicates</option>
+                            <option value="targets">targets</option>
+                            <option value="uses">uses</option>
+                            <option value="attributed-to">attributed-to</option>
+                            <option value="compromises">compromises</option>
+                            <option value="communicates-with">communicates-with</option>
+                            <option value="consists-of">consists-of</option>
+                            <option value="controls">controls</option>
+                            <option value="delivers">delivers</option>
+                            <option value="derived-from">derived-from</option>
+                            <option value="downloads">downloads</option>
+                            <option value="drops">drops</option>
+                            <option value="exploits">exploits</option>
+                            <option value="has">has</option>
+                            <option value="hosts">hosts</option>
+                            <option value="impersonates">impersonates</option>
+                            <option value="investigates">investigates</option>
+                            <option value="located-at">located-at</option>
+                            <option value="mitigates">mitigates</option>
+                            <option value="owns">owns</option>
+                            <option value="part-of">part-of</option>
+                            <option value="related-to">related-to</option>
+                            <option value="remediates">remediates</option>
+                            <option value="revoked-by">revoked-by</option>
+                            <option value="variant-of">variant-of</option>
+                        </select>
+                    </div>
+                    
+                    <div class="inline-form">
+                        <div></div>
+                        <button class="btn" onclick="addRelationship()" id="addRelationshipBtn" disabled>Add Relationship</button>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #4a5568;">
+                    Current Relationships (<span id="relationshipCount">0</span>)
+                </h3>
+                <div id="relationshipsList" class="objects-list">
+                    <p style="color: #a0aec0; text-align: center; padding: 20px;">No relationships created yet</p>
+                </div>
+            </div>
 
             <div class="card full-width">
                 <h2>Bundle Management</h2>
@@ -382,365 +396,364 @@
     </div>
 
     <script>
+       
         let currentObjects = [];
+        let currentRelationships = [];
         let currentBundle = null;
 
-        const formTemplates = {
-            indicator: `
-                <div class="form-group">
-                    <label for="indicatorPattern">Pattern:</label>
-                    <textarea id="indicatorPattern" placeholder="[file:hashes.MD5 = 'd41d8cd98f00b204e9800998ecf8427e']" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="indicatorLabels">Labels (comma-separated):</label>
-                    <input type="text" id="indicatorLabels" placeholder="malicious-activity, suspicious" required>
-                </div>
-                <div class="form-group">
-                    <label for="indicatorDescription">Description (optional):</label>
-                    <textarea id="indicatorDescription" placeholder="Description of the indicator"></textarea>
-                </div>
-            `,
-            malware: `
-                <div class="form-group">
-                    <label for="malwareName">Name:</label>
-                    <input type="text" id="malwareName" placeholder="BadMalware" required>
-                </div>
-                <div class="form-group">
-                    <label for="malwareLabels">Labels (comma-separated):</label>
-                    <input type="text" id="malwareLabels" placeholder="trojan, backdoor, keylogger" required>
-                </div>
-                <div class="form-group">
-                    <label for="malwareDescription">Description (optional):</label>
-                    <textarea id="malwareDescription" placeholder="Description of the malware"></textarea>
-                </div>
-            `,
-            "threat-actor": `
-                <div class="form-group">
-                    <label for="threatActorName">Name:</label>
-                    <input type="text" id="threatActorName" placeholder="Evil Corp" required>
-                </div>
-                <div class="form-group">
-                    <label for="threatActorLabels">Labels (comma-separated):</label>
-                    <input type="text" id="threatActorLabels" placeholder="hacker, criminal" required>
-                </div>
-                <div class="form-group">
-                    <label for="threatActorDescription">Description (optional):</label>
-                    <textarea id="threatActorDescription" placeholder="Description of the threat actor"></textarea>
-                </div>
-            `,
-            "attack-pattern": `
-                <div class="form-group">
-                    <label for="attackPatternName">Name:</label>
-                    <input type="text" id="attackPatternName" placeholder="Spear Phishing" required>
-                </div>
-                <div class="form-group">
-                    <label for="attackPatternDescription">Description (optional):</label>
-                    <textarea id="attackPatternDescription" placeholder="Description of the attack pattern"></textarea>
-                </div>
-            `,
-            campaign: `
-                <div class="form-group">
-                    <label for="campaignName">Name:</label>
-                    <input type="text" id="campaignName" placeholder="Operation BadActor" required>
-                </div>
-                <div class="form-group">
-                    <label for="campaignDescription">Description (optional):</label>
-                    <textarea id="campaignDescription" placeholder="Description of the campaign"></textarea>
-                </div>
-            `,
-            "intrusion-set": `
-                <div class="form-group">
-                    <label for="intrusionSetName">Name:</label>
-                    <input type="text" id="intrusionSetName" placeholder="APT1" required>
-                </div>
-                <div class="form-group">
-                    <label for="intrusionSetDescription">Description (optional):</label>
-                    <textarea id="intrusionSetDescription" placeholder="Description of the intrusion set"></textarea>
-                </div>
-            `,
-            tool: `
-                <div class="form-group">
-                    <label for="toolName">Name:</label>
-                    <input type="text" id="toolName" placeholder="BadTool" required>
-                </div>
-                <div class="form-group">
-                    <label for="toolLabels">Labels (comma-separated):</label>
-                    <input type="text" id="toolLabels" placeholder="remote-access-trojan, credential-stealer" required>
-                </div>
-                <div class="form-group">
-                    <label for="toolDescription">Description (optional):</label>
-                    <textarea id="toolDescription" placeholder="Description of the tool"></textarea>
-                </div>
-            `,
-            "observed-data": `
-                <div class="form-group">
-                    <label for="numberObserved">Number Observed:</label>
-                    <input type="number" id="numberObserved" min="1" placeholder="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="firstObserved">First Observed:</label>
-                    <input type="datetime-local" id="firstObserved" required>
-                </div>
-                <div class="form-group">
-                    <label for="lastObserved">Last Observed:</label>
-                    <input type="datetime-local" id="lastObserved" required>
-                </div>
-                <div class="form-group">
-                    <label for="observedObjects">Objects (JSON format):</label>
-                    <textarea id="observedObjects" placeholder='{"0": {"type": "file", "hashes": {"MD5": "d41d8cd98f00b204e9800998ecf8427e"}}}' required></textarea>
-                </div>
-            `
-        };
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBundles();
+            updateObjectSelectors();
+        });
+
+    
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.getElementById('statusMessage');
+            messageDiv.className = `status-message status-${type}`;
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
 
         function updateObjectForm() {
             const objectType = document.getElementById('objectType').value;
-            const formContainer = document.getElementById('objectForm');
+            const formDiv = document.getElementById('objectForm');
             const addBtn = document.getElementById('addObjectBtn');
-
-            if (objectType && formTemplates[objectType]) {
-                formContainer.innerHTML = formTemplates[objectType];
-                addBtn.disabled = false;
-
-                if (objectType === 'observed-data') {
-                    const now = new Date();
-                    const nowString = now.toISOString().slice(0, 16);
-                    document.getElementById('firstObserved').value = nowString;
-                    document.getElementById('lastObserved').value = nowString;
-                }
-            } else {
-                formContainer.innerHTML = '';
+            
+            if (!objectType) {
+                formDiv.innerHTML = '';
                 addBtn.disabled = true;
+                return;
+            }
+            
+            let formHTML = '';
+            
+            switch(objectType) {
+                case 'indicator':
+                    formHTML = `
+                        <div class="form-group">
+                            <label for="indicatorPattern">Pattern:</label>
+                            <input type="text" id="indicatorPattern" placeholder="e.g., [file:hashes.MD5 = 'd41d8cd98f00b204e9800998ecf8427e']" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="indicatorLabels">Labels (comma-separated):</label>
+                            <input type="text" id="indicatorLabels" placeholder="e.g., malicious-activity, suspicious" required>
+                        </div>
+                    `;
+                    break;
+                case 'malware':
+                    formHTML = `
+                        <div class="form-group">
+                            <label for="malwareName">Name:</label>
+                            <input type="text" id="malwareName" placeholder="e.g., Poison Ivy" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="malwareLabels">Labels (comma-separated):</label>
+                            <input type="text" id="malwareLabels" placeholder="e.g., trojan, remote-access-trojan" required>
+                        </div>
+                    `;
+                    break;
+                case 'threat-actor':
+                    formHTML = `
+                        <div class="form-group">
+                            <label for="threatActorName">Name:</label>
+                            <input type="text" id="threatActorName" placeholder="e.g., APT1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="threatActorLabels">Labels (comma-separated):</label>
+                            <input type="text" id="threatActorLabels" placeholder="e.g., hacker, nation-state" required>
+                        </div>
+                    `;
+                    break;
+                default:
+                    formHTML = `
+                        <div class="form-group">
+                            <label for="objectName">Name:</label>
+                            <input type="text" id="objectName" placeholder="Enter object name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="objectDescription">Description:</label>
+                            <textarea id="objectDescription" placeholder="Enter object description" rows="3"></textarea>
+                        </div>
+                    `;
+            }
+            
+            formDiv.innerHTML = formHTML;
+            addBtn.disabled = false;
+        }
+
+        
+        async function addObject() {
+            const objectType = document.getElementById('objectType').value;
+            const properties = {};
+            
+            try {
+                switch(objectType) {
+                    case 'indicator':
+                        properties.pattern = document.getElementById('indicatorPattern').value;
+                        properties.labels = document.getElementById('indicatorLabels').value.split(',').map(s => s.trim());
+                        break;
+                    case 'malware':
+                        properties.name = document.getElementById('malwareName').value;
+                        properties.labels = document.getElementById('malwareLabels').value.split(',').map(s => s.trim());
+                        break;
+                    case 'threat-actor':
+                        properties.name = document.getElementById('threatActorName').value;
+                        properties.labels = document.getElementById('threatActorLabels').value.split(',').map(s => s.trim());
+                        break;
+                    default:
+                        properties.name = document.getElementById('objectName').value;
+                        properties.description = document.getElementById('objectDescription').value;
+                }
+                
+                const response = await fetch('/api/create-object', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: objectType,
+                        properties: properties
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    currentObjects.push(result);
+                    updateObjectsList();
+                    updateObjectSelectors();
+                    showMessage(`${objectType} object created successfully!`);
+                   
+                    document.getElementById('objectType').value = '';
+                    updateObjectForm();
+                } else {
+                    showMessage(`Error creating object: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
             }
         }
 
-        function addObject() {
-            const objectType = document.getElementById('objectType').value;
+       
+        async function addRelationship() {
+            const sourceRef = document.getElementById('sourceObject').value;
+            const targetRef = document.getElementById('targetObject').value;
+            const relationshipType = document.getElementById('relationshipType').value;
+            
+            if (!sourceRef || !targetRef || !relationshipType) {
+                showMessage('Please select source, target, and relationship type', 'error');
+                return;
+            }
             
             try {
-                let objectData = {
-                    type: objectType,
-                    id: `${objectType}--${generateUUID()}`,
-                    spec_version: "2.1",
-                    created: new Date().toISOString(),
-                    modified: new Date().toISOString()
-                };
-
-                switch (objectType) {
-                    case 'indicator':
-                        objectData.pattern = document.getElementById('indicatorPattern').value;
-                        objectData.labels = document.getElementById('indicatorLabels').value.split(',').map(s => s.trim());
-                        objectData.valid_from = new Date().toISOString();
-                        if (document.getElementById('indicatorDescription').value) {
-                            objectData.description = document.getElementById('indicatorDescription').value;
-                        }
-                        break;
-
-                    case 'malware':
-                        objectData.name = document.getElementById('malwareName').value;
-                        objectData.labels = document.getElementById('malwareLabels').value.split(',').map(s => s.trim());
-                        if (document.getElementById('malwareDescription').value) {
-                            objectData.description = document.getElementById('malwareDescription').value;
-                        }
-                        break;
-
-                    case 'threat-actor':
-                        objectData.name = document.getElementById('threatActorName').value;
-                        objectData.labels = document.getElementById('threatActorLabels').value.split(',').map(s => s.trim());
-                        if (document.getElementById('threatActorDescription').value) {
-                            objectData.description = document.getElementById('threatActorDescription').value;
-                        }
-                        break;
-
-                    case 'attack-pattern':
-                        objectData.name = document.getElementById('attackPatternName').value;
-                        if (document.getElementById('attackPatternDescription').value) {
-                            objectData.description = document.getElementById('attackPatternDescription').value;
-                        }
-                        break;
-
-                    case 'campaign':
-                        objectData.name = document.getElementById('campaignName').value;
-                        if (document.getElementById('campaignDescription').value) {
-                            objectData.description = document.getElementById('campaignDescription').value;
-                        }
-                        break;
-
-                    case 'intrusion-set':
-                        objectData.name = document.getElementById('intrusionSetName').value;
-                        if (document.getElementById('intrusionSetDescription').value) {
-                            objectData.description = document.getElementById('intrusionSetDescription').value;
-                        }
-                        break;
-
-                    case 'tool':
-                        objectData.name = document.getElementById('toolName').value;
-                        objectData.labels = document.getElementById('toolLabels').value.split(',').map(s => s.trim());
-                        if (document.getElementById('toolDescription').value) {
-                            objectData.description = document.getElementById('toolDescription').value;
-                        }
-                        break;
-
-                    case 'observed-data':
-                        objectData.number_observed = parseInt(document.getElementById('numberObserved').value);
-                        objectData.first_observed = new Date(document.getElementById('firstObserved').value).toISOString();
-                        objectData.last_observed = new Date(document.getElementById('lastObserved').value).toISOString();
-                        objectData.objects = JSON.parse(document.getElementById('observedObjects').value);
-                        break;
+                const response = await fetch('/api/create-relationship', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        source_ref: sourceRef,
+                        target_ref: targetRef,
+                        relationship_type: relationshipType
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    currentRelationships.push(result);
+                    updateRelationshipsList();
+                    showMessage('Relationship created successfully!');
+                    
+       
+                    document.getElementById('sourceObject').value = '';
+                    document.getElementById('targetObject').value = '';
+                    document.getElementById('relationshipType').value = '';
+                    updateRelationshipFormState();
+                } else {
+                    showMessage(`Error creating relationship: ${result.error}`, 'error');
                 }
-
-                currentObjects.push(objectData);
-                updateObjectsList();
-                clearForm();
-                showStatus('Object added successfully!', 'success');
-
             } catch (error) {
-                showStatus('Error adding object: ' + error.message, 'error');
+                showMessage(`Error: ${error.message}`, 'error');
             }
         }
 
         function updateObjectsList() {
-            const container = document.getElementById('objectsList');
-            const countElement = document.getElementById('objectCount');
-            const createBundleBtn = document.getElementById('createBundleBtn');
-
-            countElement.textContent = currentObjects.length;
-
+            const listDiv = document.getElementById('objectsList');
+            const countSpan = document.getElementById('objectCount');
+            
+            countSpan.textContent = currentObjects.length;
+            
             if (currentObjects.length === 0) {
-                container.innerHTML = '<p style="color: #a0aec0; text-align: center; padding: 20px;">No objects created yet</p>';
-                createBundleBtn.disabled = true;
+                listDiv.innerHTML = '<p style="color: #a0aec0; text-align: center; padding: 20px;">No objects created yet</p>';
+                document.getElementById('createBundleBtn').disabled = true;
                 return;
             }
-
-            createBundleBtn.disabled = false;
-
-            container.innerHTML = currentObjects.map((obj, index) => `
+            
+            listDiv.innerHTML = currentObjects.map(obj => `
                 <div class="object-item">
-                    <div class="object-info">
-                        <div class="object-type">${obj.type}</div>
-                        <div class="object-name">${obj.name || obj.pattern || 'N/A'}</div>
-                        <div class="object-id">${obj.id}</div>
-                    </div>
-                    <button class="btn btn-danger btn-small" onclick="removeObject(${index})">Remove</button>
+                    <h4>${obj.type.toUpperCase()}</h4>
+                    <p><strong>Name:</strong> ${obj.name || obj.pattern || 'N/A'}</p>
+                    <p class="object-id">ID: ${obj.id}</p>
                 </div>
             `).join('');
-        }
-
-        function removeObject(index) {
-            currentObjects.splice(index, 1);
-            updateObjectsList();
-            showStatus('Object removed', 'success');
-        }
-
-        function clearObjects() {
-            currentObjects = [];
-            currentBundle = null;
-            updateObjectsList();
-            document.getElementById('jsonOutput').textContent = '// Your STIX bundle will appear here';
-            document.getElementById('bundleValidation').innerHTML = '';
-            document.getElementById('validateBtn').disabled = true;
-            document.getElementById('saveBundleBtn').disabled = true;
-            showStatus('All objects cleared', 'success');
-        }
-
-        function createBundle() {
-            if (currentObjects.length === 0) {
-                showStatus('No objects to create bundle', 'warning');
-                return;
-            }
-
-            currentBundle = {
-                type: "bundle",
-                id: `bundle--${generateUUID()}`,
-                objects: [...currentObjects]
-            };
-
-            document.getElementById('jsonOutput').textContent = JSON.stringify(currentBundle, null, 2);
-            document.getElementById('validateBtn').disabled = false;
-            document.getElementById('saveBundleBtn').disabled = false;
             
-            showStatus('Bundle created successfully!', 'success');
+            document.getElementById('createBundleBtn').disabled = false;
         }
 
-        function validateBundle() {
-            if (!currentBundle) {
-                showStatus('No bundle to validate', 'warning');
+        function updateRelationshipsList() {
+            const listDiv = document.getElementById('relationshipsList');
+            const countSpan = document.getElementById('relationshipCount');
+            
+            countSpan.textContent = currentRelationships.length;
+            
+            if (currentRelationships.length === 0) {
+                listDiv.innerHTML = '<p style="color: #a0aec0; text-align: center; padding: 20px;">No relationships created yet</p>';
                 return;
             }
+            
+            listDiv.innerHTML = currentRelationships.map(rel => {
+                const sourceName = getObjectName(rel.source_ref);
+                const targetName = getObjectName(rel.target_ref);
+                
+                return `
+                    <div class="relationship-item">
+                        <h4>${rel.relationship_type.toUpperCase()}</h4>
+                        <p><strong>Source:</strong> ${sourceName} (${rel.source_ref.split('--')[0]})</p>
+                        <p><strong>Target:</strong> ${targetName} (${rel.target_ref.split('--')[0]})</p>
+                        <p class="object-id">ID: ${rel.id}</p>
+                    </div>
+                `;
+            }).join('');
+        }
 
+        function getObjectName(objectId) {
+            const obj = currentObjects.find(o => o.id === objectId);
+            return obj ? (obj.name || obj.pattern || 'Unknown') : 'Unknown';
+        }
 
-            const validationResults = {
-                valid: true,
-                errors: [],
-                warnings: []
-            };
+        function updateObjectSelectors() {
+            const sourceSelect = document.getElementById('sourceObject');
+            const targetSelect = document.getElementById('targetObject');
+            
+            const options = currentObjects.map(obj => 
+                `<option value="${obj.id}">${obj.type}: ${obj.name || obj.pattern || obj.id}</option>`
+            ).join('');
+            
+            sourceSelect.innerHTML = '<option value="">Select source object...</option>' + options;
+            targetSelect.innerHTML = '<option value="">Select target object...</option>' + options;
+            
+            updateRelationshipFormState();
+        }
 
+        function updateRelationshipFormState() {
+            const sourceRef = document.getElementById('sourceObject').value;
+            const targetRef = document.getElementById('targetObject').value;
+            const relationshipType = document.getElementById('relationshipType').value;
+            
+            document.getElementById('addRelationshipBtn').disabled = !sourceRef || !targetRef || !relationshipType;
+        }
 
-            if (currentBundle.type !== 'bundle') {
-                validationResults.errors.push("Bundle must have type 'bundle'");
-                validationResults.valid = false;
+        document.getElementById('sourceObject').addEventListener('change', updateRelationshipFormState);
+        document.getElementById('targetObject').addEventListener('change', updateRelationshipFormState);
+        document.getElementById('relationshipType').addEventListener('change', updateRelationshipFormState);
+
+        // Creating bundle
+        async function createBundle() {
+            const allObjects = [...currentObjects, ...currentRelationships];
+            
+            if (allObjects.length === 0) {
+                showMessage('No objects to bundle', 'error');
+                return;
             }
-
-            if (!currentBundle.objects || !Array.isArray(currentBundle.objects)) {
-                validationResults.errors.push("Bundle must contain an 'objects' array");
-                validationResults.valid = false;
-            }
-
-
-            currentBundle.objects.forEach(obj => {
-                if (obj.type === 'observed-data') {
-                    if (!obj.number_observed || obj.number_observed < 1) {
-                        validationResults.errors.push(`observed-data ${obj.id} must have number_observed >= 1`);
-                        validationResults.valid = false;
-                    }
-                    
-                    if (!obj.first_observed || !obj.last_observed) {
-                        validationResults.errors.push(`observed-data ${obj.id} must have first_observed and last_observed`);
-                        validationResults.valid = false;
-                    }
+            
+            try {
+                const response = await fetch('/api/create-bundle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        objects: allObjects
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    currentBundle = result.bundle;
+                    updateBundleDisplay();
+                    showMessage('Bundle created successfully!');
+                    document.getElementById('validateBtn').disabled = false;
+                    document.getElementById('saveBundleBtn').disabled = false;
+                } else {
+                    showMessage(`Error creating bundle: ${result.error}`, 'error');
                 }
-            });
-
-            displayValidationResults(validationResults);
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
         }
 
-        function displayValidationResults(results) {
-            const container = document.getElementById('bundleValidation');
-            
-            let html = '';
-            
-            if (results.valid) {
-                html = '<div class="status-message status-success">✅ Bundle validation passed!</div>';
+        // Updating display
+        function updateBundleDisplay() {
+            const jsonOutput = document.getElementById('jsonOutput');
+            if (currentBundle) {
+                jsonOutput.textContent = JSON.stringify(currentBundle, null, 2);
             } else {
-                html = '<div class="status-message status-error">❌ Bundle validation failed</div>';
+                jsonOutput.textContent = '// Your STIX bundle will appear here';
             }
-
-            if (results.errors.length > 0) {
-                html += '<div class="validation-results">';
-                html += '<h4 style="color: #742a2a; margin-bottom: 10px;">Errors:</h4>';
-                results.errors.forEach(error => {
-                    html += `<div class="validation-item validation-error">${error}</div>`;
-                });
-                html += '</div>';
-            }
-
-            if (results.warnings.length > 0) {
-                html += '<div class="validation-results">';
-                html += '<h4 style="color: #744210; margin-bottom: 10px;">Warnings:</h4>';
-                results.warnings.forEach(warning => {
-                    html += `<div class="validation-item validation-warning">${warning}</div>`;
-                });
-                html += '</div>';
-            }
-
-            container.innerHTML = html;
         }
 
+        // Validating bundle
+        async function validateBundle() {
+            if (!currentBundle) {
+                showMessage('No bundle to validate', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/validate-bundle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(currentBundle)
+                });
+                
+                const result = await response.json();
+                
+                const validationDiv = document.getElementById('bundleValidation');
+                
+                if (result.valid) {
+                    validationDiv.innerHTML = '<p style="color: #38a169; font-weight: 600;">✓ Bundle is valid</p>';
+                    showMessage('Bundle validation successful!');
+                } else {
+                    validationDiv.innerHTML = `
+                        <p style="color: #e53e3e; font-weight: 600;">✗ Bundle validation failed</p>
+                        <ul style="color: #e53e3e; margin-top: 10px;">
+                            ${result.errors.map(error => `<li>${error}</li>`).join('')}
+                        </ul>
+                    `;
+                    showMessage('Bundle validation failed', 'error');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Saving bundle
         async function saveBundle() {
             if (!currentBundle) {
-                showStatus('No bundle to save', 'warning');
+                showMessage('No bundle to save', 'error');
                 return;
             }
-
+            
             try {
                 const response = await fetch('/api/save-bundle', {
                     method: 'POST',
@@ -749,116 +762,111 @@
                     },
                     body: JSON.stringify(currentBundle)
                 });
-
+                
                 const result = await response.json();
-
+                
                 if (response.ok) {
-                    showStatus(`Bundle saved as ${result.filename}`, 'success');
-                    loadBundles(); 
+                    showMessage(`Bundle saved as ${result.filename}!`);
+                    loadBundles();
                 } else {
-                    showStatus(`Error saving bundle: ${result.error}`, 'error');
+                    showMessage(`Error saving bundle: ${result.error}`, 'error');
                 }
             } catch (error) {
-                showStatus(`Error saving bundle: ${error.message}`, 'error');
+                showMessage(`Error: ${error.message}`, 'error');
             }
         }
 
+        // Exporting bundle
         function exportBundle() {
             if (!currentBundle) {
-                showStatus('No bundle to export', 'warning');
+                showMessage('No bundle to export', 'error');
                 return;
             }
-
+            
             const dataStr = JSON.stringify(currentBundle, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
             
-            const exportFileDefaultName = `stix_bundle_${currentBundle.id}.json`;
-
+            const exportFileDefaultName = `stix_bundle_${new Date().toISOString().split('T')[0]}.json`;
+            
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
             
-            showStatus('Bundle exported successfully!', 'success');
+            showMessage('Bundle exported successfully!');
         }
 
+        // Loading all bundles
         async function loadBundles() {
             try {
                 const response = await fetch('/api/bundles');
                 const result = await response.json();
-
-                const container = document.getElementById('bundlesList');
-
+                
+                const bundlesDiv = document.getElementById('bundlesList');
+                
                 if (result.bundles && result.bundles.length > 0) {
-                    container.innerHTML = result.bundles.map(bundle => `
-                        <div class="bundle-item" onclick="loadBundle('${bundle.filename}')">
-                            <div class="bundle-name">${bundle.filename}</div>
-                            <div class="bundle-info">
-                                ID: ${bundle.id}<br>
-                                Objects: ${bundle.objects_count}<br>
-                                Created: ${new Date(bundle.created * 1000).toLocaleString()}
-                            </div>
+                    bundlesDiv.innerHTML = result.bundles.map(bundle => `
+                        <div class="bundle-item" style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+                            <h4>${bundle.filename}</h4>
+                            <p>Objects: ${bundle.objects_count}</p>
+                            <p>Status: ${bundle.valid ? '✓ Valid' : '✗ Invalid'}</p>
+                            <button class="btn btn-secondary" onclick="loadBundle('${bundle.filename}')" style="margin-top: 5px;">Load</button>
                         </div>
                     `).join('');
                 } else {
-                    container.innerHTML = '<p style="color: #a0aec0; text-align: center; padding: 20px;">No saved bundles</p>';
+                    bundlesDiv.innerHTML = '<p style="color: #a0aec0; text-align: center; padding: 20px;">No saved bundles</p>';
                 }
             } catch (error) {
-                showStatus(`Error loading bundles: ${error.message}`, 'error');
+                showMessage(`Error loading bundles: ${error.message}`, 'error');
             }
         }
 
+        // Loading a specific bundle
         async function loadBundle(filename) {
             try {
                 const response = await fetch(`/api/bundle/${filename}`);
-                const bundle = await response.json();
-
+                const result = await response.json();
+                
                 if (response.ok) {
-                    currentBundle = bundle;
-                    currentObjects = [...bundle.objects];
+                    currentBundle = result.bundle;
+                    
+                    currentObjects = result.bundle.objects.filter(obj => obj.type !== 'relationship');
+                    currentRelationships = result.bundle.objects.filter(obj => obj.type === 'relationship');
+                    
                     updateObjectsList();
-                    document.getElementById('jsonOutput').textContent = JSON.stringify(bundle, null, 2);
+                    updateRelationshipsList();
+                    updateObjectSelectors();
+                    updateBundleDisplay();
+                    
                     document.getElementById('validateBtn').disabled = false;
                     document.getElementById('saveBundleBtn').disabled = false;
-                    showStatus(`Bundle ${filename} loaded successfully!`, 'success');
+                    
+                    showMessage(`Bundle ${filename} loaded successfully!`);
                 } else {
-                    showStatus(`Error loading bundle: ${bundle.error}`, 'error');
+                    showMessage(`Error loading bundle: ${result.error}`, 'error');
                 }
             } catch (error) {
-                showStatus(`Error loading bundle: ${error.message}`, 'error');
+                showMessage(`Error: ${error.message}`, 'error');
             }
         }
 
-        function clearForm() {
-            document.getElementById('objectType').value = '';
-            document.getElementById('objectForm').innerHTML = '';
-            document.getElementById('addObjectBtn').disabled = true;
-        }
-
-        function showStatus(message, type) {
-            const container = document.getElementById('statusMessage');
-            const statusClass = `status-${type}`;
+        // Flush 
+        function clearObjects() {
+            currentObjects = [];
+            currentRelationships = [];
+            currentBundle = null;
             
-            container.innerHTML = `<div class="status-message ${statusClass}">${message}</div>`;
+            updateObjectsList();
+            updateRelationshipsList();
+            updateObjectSelectors();
+            updateBundleDisplay();
             
-
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
+            document.getElementById('validateBtn').disabled = true;
+            document.getElementById('saveBundleBtn').disabled = true;
+            document.getElementById('bundleValidation').innerHTML = '';
+            
+            showMessage('All objects and relationships cleared');
         }
-
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                const r = Math.random() * 16 | 0;
-                const v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadBundles();
-        });
     </script>
 </body>
 </html>

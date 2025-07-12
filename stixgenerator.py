@@ -5,7 +5,7 @@ from typing import Dict, List, Any, Optional
 
 class STIXGenerator:
     """
-    STIX Generator class (Recycled code)
+    STIX Generator class
     """
     def __init__(self):
         self.sco_types = [
@@ -27,36 +27,56 @@ class STIXGenerator:
             "version": "2.1",
             "relationships": {
                 "indicator": {
-                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "malware", "tool", "threat-actor"],
+                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "malware", "tool", "threat-actor", "infrastructure", "vulnerability"],
                     "relationship_types": ["indicates", "related-to"]
                 },
                 "malware": {
-                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "tool", "threat-actor"],
-                    "relationship_types": ["related-to"]
+                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "tool", "threat-actor", "infrastructure", "vulnerability"],
+                    "relationship_types": ["uses", "targets", "related-to", "downloads", "drops"]
                 },
                 "observed-data": {
-                    "allowed_targets": ["indicator", "malware", "tool", "threat-actor"],
+                    "allowed_targets": ["indicator", "malware", "tool", "threat-actor", "attack-pattern", "campaign", "intrusion-set"],
                     "relationship_types": ["related-to"]
                 },
                 "threat-actor": {
-                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "tool", "observed-data"],
-                    "relationship_types": ["attributed-to", "related-to"]
+                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "tool", "infrastructure", "vulnerability", "identity", "location"],
+                    "relationship_types": ["uses", "targets", "attributed-to", "related-to", "impersonates", "located-at"]
                 },
                 "attack-pattern": {
-                    "allowed_targets": ["campaign", "intrusion-set", "indicator", "malware", "tool", "threat-actor"],
-                    "relationship_types": ["related-to"]
+                    "allowed_targets": ["campaign", "intrusion-set", "indicator", "malware", "tool", "threat-actor", "vulnerability", "course-of-action"],
+                    "relationship_types": ["uses", "targets", "related-to", "mitigated-by"]
                 },
                 "campaign": {
-                    "allowed_targets": ["attack-pattern", "intrusion-set", "indicator", "malware", "tool", "threat-actor"],
-                    "relationship_types": ["related-to"]
+                    "allowed_targets": ["attack-pattern", "intrusion-set", "indicator", "malware", "tool", "threat-actor", "infrastructure", "vulnerability", "identity"],
+                    "relationship_types": ["uses", "targets", "attributed-to", "related-to"]
                 },
                 "intrusion-set": {
-                    "allowed_targets": ["attack-pattern", "campaign", "indicator", "malware", "tool", "threat-actor"],
-                    "relationship_types": ["related-to"]
+                    "allowed_targets": ["attack-pattern", "campaign", "indicator", "malware", "tool", "threat-actor", "infrastructure", "vulnerability", "identity"],
+                    "relationship_types": ["uses", "targets", "attributed-to", "related-to"]
                 },
                 "tool": {
-                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "threat-actor", "observed-data"],
-                    "relationship_types": ["related-to"]
+                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "threat-actor", "infrastructure", "vulnerability"],
+                    "relationship_types": ["uses", "targets", "related-to", "drops"]
+                },
+                "infrastructure": {
+                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "tool", "threat-actor", "vulnerability"],
+                    "relationship_types": ["uses", "hosts", "related-to", "communicates-with"]
+                },
+                "vulnerability": {
+                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "tool", "threat-actor", "course-of-action"],
+                    "relationship_types": ["related-to", "mitigated-by"]
+                },
+                "course-of-action": {
+                    "allowed_targets": ["attack-pattern", "vulnerability", "malware", "tool"],
+                    "relationship_types": ["mitigates", "related-to"]
+                },
+                "identity": {
+                    "allowed_targets": ["attack-pattern", "campaign", "intrusion-set", "indicator", "malware", "tool", "threat-actor", "infrastructure", "vulnerability"],
+                    "relationship_types": ["related-to", "targets"]
+                },
+                "location": {
+                    "allowed_targets": ["identity", "threat-actor", "campaign", "intrusion-set"],
+                    "relationship_types": ["related-to", "located-at"]
                 }
             }
         }
@@ -94,16 +114,21 @@ class STIXGenerator:
     
     def validate_relationship(self, source_type: str, target_type: str, relationship_type: str) -> bool:
         """
-        Validate if a relationship is allowed between two object types (not used currently)
+        Validate if a relationship is allowed between two object types
         """
+        # If no constraints defined for source type, allow all relationships
         constraints = self.relationship_constraints.get("relationships", {})
         source_constraints = constraints.get(source_type, {})
+
+        if not source_constraints:
+            return True
         
         allowed_targets = source_constraints.get("allowed_targets", [])
         allowed_relationship_types = source_constraints.get("relationship_types", [])
+        target_allowed = not allowed_targets or target_type in allowed_targets
+        relationship_allowed = not allowed_relationship_types or relationship_type in allowed_relationship_types
         
-        return (target_type in allowed_targets and 
-                relationship_type in allowed_relationship_types)
+        return target_allowed and relationship_allowed
     
     def create_bundle(self, objects: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -121,11 +146,13 @@ class STIXGenerator:
         """
         errors = []
         warnings = []
+        
         if bundle.get("type") != "bundle":
             errors.append("Bundle must have type 'bundle'")
         
         if "objects" not in bundle or not isinstance(bundle["objects"], list):
             errors.append("Bundle must contain an 'objects' array")
+        
         if "objects" in bundle:
             for obj in bundle["objects"]:
                 if obj.get("type") in self.sco_types:
