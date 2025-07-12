@@ -1,0 +1,32 @@
+{
+  "type": "bundle",
+  "id": "bundle--4ea55bac-1713-42d6-b837-636097e71d6d",
+  "objects": [
+    {
+      "type": "indicator",
+      "id": "indicator--7ffb8cdc-efa5-47b5-9a09-6be37a614fa0",
+      "spec_version": "2.1",
+      "created": "2025-06-14T12:24:06.780Z",
+      "modified": "2025-06-14T12:24:06.780Z",
+      "pattern": "IP = \"214.5.6.14\"",
+      "labels": [
+        "C2"
+      ],
+      "valid_from": "2025-06-14T12:24:06.780Z",
+      "description": "Mythic"
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--8305e123-d956-4f7a-b82e-d3df4d759da9",
+      "spec_version": "2.1",
+      "created": "2025-06-14T12:25:05.324Z",
+      "modified": "2025-06-14T12:25:05.324Z",
+      "pattern": "IP = \"40.14.5.13\"",
+      "labels": [
+        "C2"
+      ],
+      "valid_from": "2025-06-14T12:25:05.324Z",
+      "description": "Emotet"
+    }
+  ]
+}
